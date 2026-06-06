@@ -10,7 +10,7 @@ build:
 
 # Build release version
 release:
-	xcodebuild -scheme ClaudeMonitor -configuration Release build
+	xcodebuild -scheme ClaudeMonitor -configuration Release -derivedDataPath build CODE_SIGN_ALLOWED=NO clean build
 
 # Run the app
 run: build
