@@ -1,0 +1,41 @@
+name: "Release macOS App"
+
+on: 
+  push: 
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs: 
+  build: 
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Select XCode
+        run: "sudo xcode-select -s /Applications/Xcode_26.3.app"
+
+      - name: Build App 
+        run: |
+          xcodebuild \
+            -schema ClaudeMonitor \ 
+            -configuration Release \
+            -derivedDataPath build \
+            CODE_SIGNED_ALLOWED=NO \
+            clean build
+      
+      - name: Package App 
+        run: |
+          APP_PATH=$(find build -name "*.app" -type d | head -n 1)
+          echo "Found app: $APP_PATH"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "ClaudeMonitor-${GITHUB_REF_NAME}.zip"
+
+      - name: Create Github Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ClaudeMonitor-${{ github.ref_name }}.zip
+          generate_release_notes: true
