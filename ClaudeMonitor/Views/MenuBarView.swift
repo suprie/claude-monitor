@@ -60,6 +60,23 @@ struct MenuBarView: View {
 
             Divider()
 
+            // Session Breakdown
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text("By Session")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text("\(currentSessionBreakdown.count) session\(currentSessionBreakdown.count == 1 ? "" : "s")")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+
+                SessionBreakdownView(sessions: currentSessionBreakdown)
+            }
+
+            Divider()
+
             // Weekly Chart
             if !tokenService.stats.weeklyBreakdown.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
@@ -123,6 +140,17 @@ struct MenuBarView: View {
             return tokenService.stats.monthlyModelBreakdown
         }
     }
+
+    private var currentSessionBreakdown: [SessionTokenUsage] {
+        switch selectedPeriod {
+        case .daily:
+            return tokenService.stats.dailySessionBreakdown
+        case .weekly:
+            return tokenService.stats.weeklySessionBreakdown
+        case .monthly:
+            return tokenService.stats.monthlySessionBreakdown
+        }
+    }
 }
 
 struct ModelBreakdownView: View {
@@ -180,6 +208,124 @@ struct ModelRow: View {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
         return formatter.string(from: NSNumber(value: count)) ?? "\(count)"
+    }
+}
+
+struct SessionBreakdownView: View {
+    let sessions: [SessionTokenUsage]
+
+    /// Number of sessions shown before the list collapses.
+    private let previewLimit = 5
+    @State private var isExpanded = false
+
+    var body: some View {
+        if sessions.isEmpty {
+            Text("No usage data")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.vertical, 8)
+        } else {
+            VStack(spacing: 6) {
+                ForEach(visibleSessions) { session in
+                    SessionRow(session: session)
+                }
+
+                if sessions.count > previewLimit {
+                    Button(isExpanded ? "Show less" : "Show \(sessions.count - previewLimit) more") {
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            isExpanded.toggle()
+                        }
+                    }
+                    .buttonStyle(.borderless)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+
+    private var visibleSessions: [SessionTokenUsage] {
+        isExpanded ? sessions : Array(sessions.prefix(previewLimit))
+    }
+}
+
+struct SessionRow: View {
+    let session: SessionTokenUsage
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 6) {
+                Image(systemName: "circle.grid.cross.fill")
+                    .font(.system(size: 8))
+                    .foregroundColor(sessionColor)
+                Text(session.displayName)
+                    .font(.system(.caption, design: .default))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                Spacer(minLength: 0)
+                Text(formatTokens(session.totalTokens))
+                    .font(.system(.caption, design: .monospaced))
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+            }
+
+            HStack(spacing: 6) {
+                TokenBadge(label: "in", value: session.inputTokens, color: .blue)
+                TokenBadge(label: "out", value: session.outputTokens, color: .green)
+                if session.cacheReadTokens > 0 {
+                    TokenBadge(label: "cache", value: session.cacheReadTokens, color: .orange)
+                }
+                Spacer(minLength: 0)
+                Text(session.relativeTimestamp())
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+
+    private var sessionColor: Color {
+        let colorName = ModelInfo.color(for: session.model)
+        switch colorName {
+        case "purple": return .purple
+        case "blue": return .blue
+        case "orange": return .orange
+        default: return .gray
+        }
+    }
+
+    private func formatTokens(_ count: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        return formatter.string(from: NSNumber(value: count)) ?? "\(count)"
+    }
+}
+
+/// Compact inline token display, e.g. "in 12.3K".
+struct TokenBadge: View {
+    let label: String
+    let value: Int
+    let color: Color
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(color)
+            Text(compactFormat(value))
+                .font(.system(.caption2, design: .monospaced))
+                .foregroundColor(.secondary)
+        }
+    }
+
+    private func compactFormat(_ count: Int) -> String {
+        if count >= 1_000_000 {
+            return String(format: "%.1fM", Double(count) / 1_000_000)
+        } else if count >= 1_000 {
+            return String(format: "%.1fK", Double(count) / 1_000)
+        }
+        return "\(count)"
     }
 }
 

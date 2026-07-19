@@ -25,6 +25,24 @@ actor TokenParser {
         return allUsage
     }
 
+    /// Parses the `ai-title` line from each session file and returns a
+    /// mapping of `sessionId` to its human-readable title.
+    func parseSessionTitles() async -> [String: String] {
+        var titles: [String: String] = [:]
+
+        guard let jsonlFiles = findJSONLFiles() else {
+            return titles
+        }
+
+        for file in jsonlFiles {
+            for (sessionId, title) in await parseTitles(at: file) {
+                titles[sessionId] = title
+            }
+        }
+
+        return titles
+    }
+
     private func findJSONLFiles() -> [URL]? {
         let fileManager = FileManager.default
         let projectsURL = URL(fileURLWithPath: projectsPath)
@@ -62,6 +80,12 @@ actor TokenParser {
             return usages
         }
 
+        // Derive a default project path from the parent directory name
+        // (e.g. "-Users-foo-bar-project" -> "-Users-foo-bar-project").
+        // Prefer the `cwd` field on each assistant line when available.
+        let projectDirName = url.deletingLastPathComponent().lastPathComponent
+        let sessionIdFromFile = url.deletingPathExtension().lastPathComponent
+
         let lines = content.components(separatedBy: .newlines)
         let decoder = JSONDecoder()
 
@@ -91,6 +115,10 @@ actor TokenParser {
                 guard let timestamp = date else { continue }
 
                 let model = messageContent.model ?? "unknown"
+                // Prefer the cwd on the assistant line over the directory name,
+                // since it is the actual working directory the session ran in.
+                let projectPath = message.cwd ?? projectDirName
+                let sessionId = message.sessionId ?? sessionIdFromFile
 
                 let tokenUsage = TokenUsage(
                     timestamp: timestamp,
@@ -98,7 +126,9 @@ actor TokenParser {
                     inputTokens: usage.input_tokens ?? 0,
                     outputTokens: usage.output_tokens ?? 0,
                     cacheCreationTokens: usage.cache_creation_input_tokens ?? 0,
-                    cacheReadTokens: usage.cache_read_input_tokens ?? 0
+                    cacheReadTokens: usage.cache_read_input_tokens ?? 0,
+                    sessionId: sessionId,
+                    projectPath: projectPath
                 )
 
                 usages.append(tokenUsage)
@@ -109,5 +139,37 @@ actor TokenParser {
         }
 
         return usages
+    }
+
+    /// Extracts the AI-generated title (if any) for the session stored in `url`.
+    /// Falls back to the file name (without extension) as the sessionId if the
+    /// `ai-title` line does not carry one.
+    private func parseTitles(at url: URL) async -> [String: String] {
+        var titles: [String: String] = [:]
+
+        guard let fileHandle = FileHandle(forReadingAtPath: url.path),
+              let data = try? fileHandle.readToEnd(),
+              let content = String(data: data, encoding: .utf8) else {
+            return titles
+        }
+        try? fileHandle.close()
+
+        let fallbackSessionId = url.deletingPathExtension().lastPathComponent
+        let decoder = JSONDecoder()
+        let lines = content.components(separatedBy: .newlines)
+
+        for line in lines where !line.isEmpty {
+            guard let lineData = line.data(using: .utf8),
+                  let titleMessage = try? decoder.decode(SessionTitleMessage.self, from: lineData),
+                  titleMessage.type == "ai-title",
+                  let title = titleMessage.aiTitle,
+                  !title.isEmpty else {
+                continue
+            }
+            let sessionId = titleMessage.sessionId ?? fallbackSessionId
+            titles[sessionId] = title
+        }
+
+        return titles
     }
 }

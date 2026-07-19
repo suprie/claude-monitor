@@ -8,6 +8,8 @@ struct TokenUsage: Codable, Identifiable {
     let outputTokens: Int
     let cacheCreationTokens: Int
     let cacheReadTokens: Int
+    let sessionId: String
+    let projectPath: String
 
     var totalTokens: Int {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
@@ -24,6 +26,8 @@ struct TokenUsage: Codable, Identifiable {
         case outputTokens
         case cacheCreationTokens
         case cacheReadTokens
+        case sessionId
+        case projectPath
     }
 }
 
@@ -41,6 +45,44 @@ struct ModelTokenUsage: Identifiable {
 
     var displayName: String {
         ModelInfo.displayName(for: model)
+    }
+}
+
+struct SessionTokenUsage: Identifiable {
+    let id = UUID()
+    let sessionId: String
+    let title: String?
+    let projectPath: String
+    let model: String
+    let firstTimestamp: Date
+    let lastTimestamp: Date
+    let inputTokens: Int
+    let outputTokens: Int
+    let cacheCreationTokens: Int
+    let cacheReadTokens: Int
+
+    var totalTokens: Int {
+        inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
+    }
+
+    var displayName: String {
+        if let title = title, !title.isEmpty {
+            return title
+        }
+        return projectDisplayName
+    }
+
+    /// Last path component of the project, human-readable.
+    var projectDisplayName: String {
+        let cleaned = projectPath.replacingOccurrences(of: "-", with: "/")
+        return (cleaned as NSString).lastPathComponent
+    }
+
+    /// Format session timestamps relative to now, e.g. "2h ago".
+    func relativeTimestamp(now: Date = Date()) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: lastTimestamp, relativeTo: now)
     }
 }
 
@@ -119,6 +161,9 @@ struct TokenStats {
     let dailyModelBreakdown: [ModelTokenUsage]
     let weeklyModelBreakdown: [ModelTokenUsage]
     let monthlyModelBreakdown: [ModelTokenUsage]
+    let dailySessionBreakdown: [SessionTokenUsage]
+    let weeklySessionBreakdown: [SessionTokenUsage]
+    let monthlySessionBreakdown: [SessionTokenUsage]
 
     static var empty: TokenStats {
         TokenStats(
@@ -129,7 +174,10 @@ struct TokenStats {
             modelBreakdown: [],
             dailyModelBreakdown: [],
             weeklyModelBreakdown: [],
-            monthlyModelBreakdown: []
+            monthlyModelBreakdown: [],
+            dailySessionBreakdown: [],
+            weeklySessionBreakdown: [],
+            monthlySessionBreakdown: []
         )
     }
 }
@@ -138,6 +186,9 @@ struct AssistantMessage: Codable {
     let type: String
     let timestamp: String?
     let message: MessageContent?
+    let sessionId: String?
+    let cwd: String?
+    let gitBranch: String?
 
     struct MessageContent: Codable {
         let model: String?
@@ -150,4 +201,11 @@ struct AssistantMessage: Codable {
         let cache_creation_input_tokens: Int?
         let cache_read_input_tokens: Int?
     }
+}
+
+/// Represents the `ai-title` line emitted once per session file.
+struct SessionTitleMessage: Codable {
+    let type: String
+    let sessionId: String?
+    let aiTitle: String?
 }

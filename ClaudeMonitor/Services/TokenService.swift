@@ -24,8 +24,12 @@ class TokenService: ObservableObject {
     func refresh() async {
         isLoading = true
 
-        let allUsage = await parser.parseAllTokenUsage()
-        let calculatedStats = calculateStats(from: allUsage)
+        async let allUsageTask = parser.parseAllTokenUsage()
+        async let titlesTask = parser.parseSessionTitles()
+
+        let allUsage = await allUsageTask				
+        let titles = await titlesTask
+        let calculatedStats = calculateStats(from: allUsage, sessionTitles: titles)
 
         stats = calculatedStats
         lastUpdated = Date()
@@ -40,7 +44,7 @@ class TokenService: ObservableObject {
         }
     }
 
-    private func calculateStats(from usages: [TokenUsage]) -> TokenStats {
+    private func calculateStats(from usages: [TokenUsage], sessionTitles: [String: String]) -> TokenStats {
         let calendar = Calendar.current
         let now = Date()
 
@@ -58,6 +62,11 @@ class TokenService: ObservableObject {
         var dailyModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
         var weeklyModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
         var monthlyModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
+
+        // Session breakdowns keyed by sessionId
+        var dailySessionBreakdown: [String: SessionAccumulator] = [:]
+        var weeklySessionBreakdown: [String: SessionAccumulator] = [:]
+        var monthlySessionBreakdown: [String: SessionAccumulator] = [:]
 
         for usage in usages {
             let usageDay = calendar.startOfDay(for: usage.timestamp)
@@ -83,6 +92,8 @@ class TokenService: ObservableObject {
                     existing.cacheCreate + usage.cacheCreationTokens,
                     existing.cacheRead + usage.cacheReadTokens
                 )
+
+                accumulateSession(&dailySessionBreakdown, usage: usage)
             }
 
             // Weekly
@@ -105,6 +116,8 @@ class TokenService: ObservableObject {
                     weeklyExisting.cacheCreate + usage.cacheCreationTokens,
                     weeklyExisting.cacheRead + usage.cacheReadTokens
                 )
+
+                accumulateSession(&weeklySessionBreakdown, usage: usage)
             }
 
             // Monthly
@@ -118,6 +131,8 @@ class TokenService: ObservableObject {
                     existing.cacheCreate + usage.cacheCreationTokens,
                     existing.cacheRead + usage.cacheReadTokens
                 )
+
+                accumulateSession(&monthlySessionBreakdown, usage: usage)
             }
         }
 
@@ -140,6 +155,11 @@ class TokenService: ObservableObject {
         let weeklyModels = convertToModelUsageArray(weeklyModelBreakdown)
         let monthlyModels = convertToModelUsageArray(monthlyModelBreakdown)
 
+        // Convert session breakdowns to arrays sorted by total tokens (most usage first)
+        let dailySessions = convertToSessionUsageArray(dailySessionBreakdown, titles: sessionTitles)
+        let weeklySessions = convertToSessionUsageArray(weeklySessionBreakdown, titles: sessionTitles)
+        let monthlySessions = convertToSessionUsageArray(monthlySessionBreakdown, titles: sessionTitles)
+
         return TokenStats(
             daily: daily,
             weekly: weekly,
@@ -148,8 +168,55 @@ class TokenService: ObservableObject {
             modelBreakdown: modelBreakdown,
             dailyModelBreakdown: dailyModels,
             weeklyModelBreakdown: weeklyModels,
-            monthlyModelBreakdown: monthlyModels
+            monthlyModelBreakdown: monthlyModels,
+            dailySessionBreakdown: dailySessions,
+            weeklySessionBreakdown: weeklySessions,
+            monthlySessionBreakdown: monthlySessions
         )
+    }
+
+    /// Per-session aggregation state while iterating usages.
+    private struct SessionAccumulator {
+        var projectPath: String = ""
+        var model: String = "unknown"
+        var firstTimestamp: Date = .distantFuture
+        var lastTimestamp: Date = .distantPast
+        var inputTokens: Int = 0
+        var outputTokens: Int = 0
+        var cacheCreationTokens: Int = 0
+        var cacheReadTokens: Int = 0
+    }
+
+    private func accumulateSession(_ breakdown: inout [String: SessionAccumulator], usage: TokenUsage) {
+        var entry = breakdown[usage.sessionId] ?? SessionAccumulator()
+        entry.projectPath = usage.projectPath
+        entry.model = usage.model
+        entry.firstTimestamp = min(entry.firstTimestamp, usage.timestamp)
+        entry.lastTimestamp = max(entry.lastTimestamp, usage.timestamp)
+        entry.inputTokens += usage.inputTokens
+        entry.outputTokens += usage.outputTokens
+        entry.cacheCreationTokens += usage.cacheCreationTokens
+        entry.cacheReadTokens += usage.cacheReadTokens
+        breakdown[usage.sessionId] = entry
+    }
+
+    private func convertToSessionUsageArray(_ breakdown: [String: SessionAccumulator], titles: [String: String]) -> [SessionTokenUsage] {
+        breakdown
+            .map { sessionId, acc in
+                SessionTokenUsage(
+                    sessionId: sessionId,
+                    title: titles[sessionId],
+                    projectPath: acc.projectPath,
+                    model: acc.model,
+                    firstTimestamp: acc.firstTimestamp,
+                    lastTimestamp: acc.lastTimestamp,
+                    inputTokens: acc.inputTokens,
+                    outputTokens: acc.outputTokens,
+                    cacheCreationTokens: acc.cacheCreationTokens,
+                    cacheReadTokens: acc.cacheReadTokens
+                )
+            }
+            .sorted { $0.totalTokens > $1.totalTokens }
     }
 
     private func convertToModelUsageArray(_ breakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)]) -> [ModelTokenUsage] {
