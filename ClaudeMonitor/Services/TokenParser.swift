@@ -128,7 +128,8 @@ actor TokenParser {
                     cacheCreationTokens: usage.cache_creation_input_tokens ?? 0,
                     cacheReadTokens: usage.cache_read_input_tokens ?? 0,
                     sessionId: sessionId,
-                    projectPath: projectPath
+                    projectPath: projectPath,
+                    source: .claude
                 )
 
                 usages.append(tokenUsage)
