@@ -1,5 +1,31 @@
 import Foundation
 
+/// Where a token-usage record originated: Claude (JSONL), ZCode (SQLite),
+/// or Hermes (SQLite).
+enum TokenSource: String, Codable {
+    case claude
+    case zcode
+    case hermes
+
+    /// Short uppercase tag for compact UI badges, e.g. "CC" / "ZC" / "HE".
+    var badgeText: String {
+        switch self {
+        case .claude: return "CC"
+        case .zcode: return "ZC"
+        case .hermes: return "HE"
+        }
+    }
+
+    /// Human-readable label.
+    var displayName: String {
+        switch self {
+        case .claude: return "Claude"
+        case .zcode: return "ZCode"
+        case .hermes: return "Hermes"
+        }
+    }
+}
+
 struct TokenUsage: Codable, Identifiable {
     let id = UUID()
     let timestamp: Date
@@ -10,6 +36,7 @@ struct TokenUsage: Codable, Identifiable {
     let cacheReadTokens: Int
     let sessionId: String
     let projectPath: String
+    let source: TokenSource
 
     var totalTokens: Int {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
@@ -28,12 +55,14 @@ struct TokenUsage: Codable, Identifiable {
         case cacheReadTokens
         case sessionId
         case projectPath
+        case source
     }
 }
 
 struct ModelTokenUsage: Identifiable {
     let id = UUID()
     let model: String
+    let source: TokenSource
     let inputTokens: Int
     let outputTokens: Int
     let cacheCreationTokens: Int
@@ -54,6 +83,7 @@ struct SessionTokenUsage: Identifiable {
     let title: String?
     let projectPath: String
     let model: String
+    let source: TokenSource
     let firstTimestamp: Date
     let lastTimestamp: Date
     let inputTokens: Int
@@ -88,40 +118,54 @@ struct SessionTokenUsage: Identifiable {
 
 struct ModelInfo {
     static func displayName(for model: String) -> String {
-        if model.contains("opus") {
-            if model.contains("4-6") || model.contains("4.6") {
+        let lower = model.lowercased()
+        if lower.contains("opus") {
+            if lower.contains("4-6") || lower.contains("4.6") {
                 return "Opus 4.6"
-            } else if model.contains("4-5") || model.contains("4.5") {
+            } else if lower.contains("4-5") || lower.contains("4.5") {
                 return "Opus 4.5"
             }
             return "Opus"
-        } else if model.contains("sonnet") {
-            if model.contains("4-6") || model.contains("4.6") {
+        } else if lower.contains("sonnet") {
+            if lower.contains("4-6") || lower.contains("4.6") {
                 return "Sonnet 4.6"
-            } else if model.contains("4-5") || model.contains("4.5") {
+            } else if lower.contains("4-5") || lower.contains("4.5") {
                 return "Sonnet 4.5"
-            } else if model.contains("3-5") || model.contains("3.5") {
+            } else if lower.contains("3-5") || lower.contains("3.5") {
                 return "Sonnet 3.5"
             }
             return "Sonnet"
-        } else if model.contains("haiku") {
-            if model.contains("4-5") || model.contains("4.5") {
+        } else if lower.contains("haiku") {
+            if lower.contains("4-5") || lower.contains("4.5") {
                 return "Haiku 4.5"
-            } else if model.contains("3-5") || model.contains("3.5") {
+            } else if lower.contains("3-5") || lower.contains("3.5") {
                 return "Haiku 3.5"
             }
             return "Haiku"
+        } else if lower.contains("glm") {
+            // ZCode models, e.g. "GLM-5.2", "glm-5.2"
+            if lower.contains("5.2") || lower.contains("5-2") {
+                return "GLM 5.2"
+            } else if lower.contains("4.5") || lower.contains("4-5") {
+                return "GLM 4.5"
+            } else if lower.contains("4") {
+                return "GLM 4"
+            }
+            return "GLM"
         }
         return model
     }
 
     static func color(for model: String) -> String {
-        if model.contains("opus") {
+        let lower = model.lowercased()
+        if lower.contains("opus") {
             return "purple"
-        } else if model.contains("sonnet") {
+        } else if lower.contains("sonnet") {
             return "blue"
-        } else if model.contains("haiku") {
+        } else if lower.contains("haiku") {
             return "orange"
+        } else if lower.contains("glm") {
+            return "teal"
         }
         return "gray"
     }

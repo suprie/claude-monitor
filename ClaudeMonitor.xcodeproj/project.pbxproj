@@ -12,6 +12,8 @@
 		70EF53426B3F027D0BE652B4 /* TokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85456444B8D8F2991E6B77EC /* TokenParser.swift */; };
 		82B4A30B9CF969BA05030DDA /* ClaudeMonitorApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC0FB52122C9A94A475FA81B /* ClaudeMonitorApp.swift */; };
 		AC6E09FA8DFA6F3544D82F9E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2E2971C88C4540B881C3F825 /* Assets.xcassets */; };
+		CFE7FFF27A082B7C7877ED59 /* ZCodeTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE8A36EF591338B10B5E4C87 /* ZCodeTokenParser.swift */; };
+		D1A2B3C4D5E6F7A8B9C0D1E2 /* HermesTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2E3D4C5B6A7F8E9D0C1B2A3 /* HermesTokenParser.swift */; };
 		D5A06858C6D1213E7B181091 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6E2FB5DE3ABC2A1EE3007D3 /* TokenService.swift */; };
 		EAF32646575FDCBF130619D9 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB7D29F59958C076E83922DA /* SettingsView.swift */; };
 		F5422A4B766A2F0F9F564CB0 /* TokenUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 888C96F0EB609DACC97F1F5B /* TokenUsage.swift */; };
@@ -29,6 +31,8 @@
 		D6E2FB5DE3ABC2A1EE3007D3 /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
 		DC0FB52122C9A94A475FA81B /* ClaudeMonitorApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeMonitorApp.swift; sourceTree = "<group>"; };
 		F9FAF0667A4500690AC14250 /* ClaudeMonitor.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ClaudeMonitor.entitlements; sourceTree = "<group>"; };
+		FE8A36EF591338B10B5E4C87 /* ZCodeTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZCodeTokenParser.swift; sourceTree = "<group>"; };
+		F2E3D4C5B6A7F8E9D0C1B2A3 /* HermesTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesTokenParser.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -60,6 +64,8 @@
 				ABD3B3BC8D1856FA6966000E /* LaunchAtLoginManager.swift */,
 				85456444B8D8F2991E6B77EC /* TokenParser.swift */,
 				D6E2FB5DE3ABC2A1EE3007D3 /* TokenService.swift */,
+				FE8A36EF591338B10B5E4C87 /* ZCodeTokenParser.swift */,
+				F2E3D4C5B6A7F8E9D0C1B2A3 /* HermesTokenParser.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -126,7 +132,6 @@
 				};
 			};
 			buildConfigurationList = B0EBEFBDBC2E41CED86FDF2F /* Build configuration list for PBXProject "ClaudeMonitor" */;
-			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -136,6 +141,7 @@
 			mainGroup = 07E8AC954CB3FA5879910A53;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = 652D67D252F283B04AFEF569 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -167,6 +173,8 @@
 				70EF53426B3F027D0BE652B4 /* TokenParser.swift in Sources */,
 				D5A06858C6D1213E7B181091 /* TokenService.swift in Sources */,
 				F5422A4B766A2F0F9F564CB0 /* TokenUsage.swift in Sources */,
+				CFE7FFF27A082B7C7877ED59 /* ZCodeTokenParser.swift in Sources */,
+				D1A2B3C4D5E6F7A8B9C0D1E2 /* HermesTokenParser.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

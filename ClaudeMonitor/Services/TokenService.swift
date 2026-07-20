@@ -8,6 +8,8 @@ class TokenService: ObservableObject {
     @Published var lastUpdated: Date?
 
     private let parser = TokenParser()
+    private let zcodeParser = ZCodeTokenParser()
+    private let hermesParser = HermesTokenParser()
     private var refreshTimer: Timer?
 
     var todayTokensFormatted: String {
@@ -24,11 +26,19 @@ class TokenService: ObservableObject {
     func refresh() async {
         isLoading = true
 
-        async let allUsageTask = parser.parseAllTokenUsage()
+        // Parse Claude (JSONL), ZCode (SQLite), and Hermes (SQLite) usage
+        // concurrently.
+        async let claudeUsageTask = parser.parseAllTokenUsage()
+        async let zcodeUsageTask = zcodeParser.parseAllTokenUsage()
+        async let hermesUsageTask = hermesParser.parseAllTokenUsage()
         async let titlesTask = parser.parseSessionTitles()
 
-        let allUsage = await allUsageTask				
+        let claudeUsage = await claudeUsageTask
+        let zcodeUsage = await zcodeUsageTask
+        let hermesUsage = await hermesUsageTask
         let titles = await titlesTask
+
+        let allUsage = claudeUsage + zcodeUsage + hermesUsage
         let calculatedStats = calculateStats(from: allUsage, sessionTitles: titles)
 
         stats = calculatedStats
@@ -57,11 +67,12 @@ class TokenService: ObservableObject {
         var monthly = 0
         var dailyBreakdown: [Date: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
 
-        // Model breakdowns
-        var allTimeModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
-        var dailyModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
-        var weeklyModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
-        var monthlyModelBreakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
+        // Model breakdowns, keyed by (model, source) so the same model name
+        // from Claude and ZCode doesn't silently merge.
+        var allTimeModelBreakdown: [ModelKey: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
+        var dailyModelBreakdown: [ModelKey: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
+        var weeklyModelBreakdown: [ModelKey: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
+        var monthlyModelBreakdown: [ModelKey: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)] = [:]
 
         // Session breakdowns keyed by sessionId
         var dailySessionBreakdown: [String: SessionAccumulator] = [:]
@@ -70,11 +81,11 @@ class TokenService: ObservableObject {
 
         for usage in usages {
             let usageDay = calendar.startOfDay(for: usage.timestamp)
-            let model = usage.model
+            let modelKey = ModelKey(model: usage.model, source: usage.source)
 
             // All time model breakdown
-            let allTimeExisting = allTimeModelBreakdown[model] ?? (0, 0, 0, 0)
-            allTimeModelBreakdown[model] = (
+            let allTimeExisting = allTimeModelBreakdown[modelKey] ?? (0, 0, 0, 0)
+            allTimeModelBreakdown[modelKey] = (
                 allTimeExisting.input + usage.inputTokens,
                 allTimeExisting.output + usage.outputTokens,
                 allTimeExisting.cacheCreate + usage.cacheCreationTokens,
@@ -85,8 +96,8 @@ class TokenService: ObservableObject {
             if usage.timestamp >= startOfToday {
                 daily += usage.totalTokens
 
-                let existing = dailyModelBreakdown[model] ?? (0, 0, 0, 0)
-                dailyModelBreakdown[model] = (
+                let existing = dailyModelBreakdown[modelKey] ?? (0, 0, 0, 0)
+                dailyModelBreakdown[modelKey] = (
                     existing.input + usage.inputTokens,
                     existing.output + usage.outputTokens,
                     existing.cacheCreate + usage.cacheCreationTokens,
@@ -109,8 +120,8 @@ class TokenService: ObservableObject {
                     existing.cacheRead + usage.cacheReadTokens
                 )
 
-                let weeklyExisting = weeklyModelBreakdown[model] ?? (0, 0, 0, 0)
-                weeklyModelBreakdown[model] = (
+                let weeklyExisting = weeklyModelBreakdown[modelKey] ?? (0, 0, 0, 0)
+                weeklyModelBreakdown[modelKey] = (
                     weeklyExisting.input + usage.inputTokens,
                     weeklyExisting.output + usage.outputTokens,
                     weeklyExisting.cacheCreate + usage.cacheCreationTokens,
@@ -124,8 +135,8 @@ class TokenService: ObservableObject {
             if usage.timestamp >= startOfMonth {
                 monthly += usage.totalTokens
 
-                let existing = monthlyModelBreakdown[model] ?? (0, 0, 0, 0)
-                monthlyModelBreakdown[model] = (
+                let existing = monthlyModelBreakdown[modelKey] ?? (0, 0, 0, 0)
+                monthlyModelBreakdown[modelKey] = (
                     existing.input + usage.inputTokens,
                     existing.output + usage.outputTokens,
                     existing.cacheCreate + usage.cacheCreationTokens,
@@ -179,6 +190,7 @@ class TokenService: ObservableObject {
     private struct SessionAccumulator {
         var projectPath: String = ""
         var model: String = "unknown"
+        var source: TokenSource = .claude
         var firstTimestamp: Date = .distantFuture
         var lastTimestamp: Date = .distantPast
         var inputTokens: Int = 0
@@ -187,10 +199,18 @@ class TokenService: ObservableObject {
         var cacheReadTokens: Int = 0
     }
 
+    /// Compound key so per-model breakdowns keep Claude and ZCode apart even
+    /// when they share a model id.
+    private struct ModelKey: Hashable {
+        let model: String
+        let source: TokenSource
+    }
+
     private func accumulateSession(_ breakdown: inout [String: SessionAccumulator], usage: TokenUsage) {
         var entry = breakdown[usage.sessionId] ?? SessionAccumulator()
         entry.projectPath = usage.projectPath
         entry.model = usage.model
+        entry.source = usage.source
         entry.firstTimestamp = min(entry.firstTimestamp, usage.timestamp)
         entry.lastTimestamp = max(entry.lastTimestamp, usage.timestamp)
         entry.inputTokens += usage.inputTokens
@@ -208,6 +228,7 @@ class TokenService: ObservableObject {
                     title: titles[sessionId],
                     projectPath: acc.projectPath,
                     model: acc.model,
+                    source: acc.source,
                     firstTimestamp: acc.firstTimestamp,
                     lastTimestamp: acc.lastTimestamp,
                     inputTokens: acc.inputTokens,
@@ -219,11 +240,12 @@ class TokenService: ObservableObject {
             .sorted { $0.totalTokens > $1.totalTokens }
     }
 
-    private func convertToModelUsageArray(_ breakdown: [String: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)]) -> [ModelTokenUsage] {
+    private func convertToModelUsageArray(_ breakdown: [ModelKey: (input: Int, output: Int, cacheCreate: Int, cacheRead: Int)]) -> [ModelTokenUsage] {
         breakdown
-            .map { model, tokens in
+            .map { key, tokens in
                 ModelTokenUsage(
-                    model: model,
+                    model: key.model,
+                    source: key.source,
                     inputTokens: tokens.input,
                     outputTokens: tokens.output,
                     cacheCreationTokens: tokens.cacheCreate,

@@ -263,6 +263,7 @@ struct SessionRow: View {
                     .font(.system(.caption, design: .default))
                     .foregroundColor(.primary)
                     .lineLimit(1)
+                SourceBadge(source: session.source)
                 Spacer(minLength: 0)
                 Text(formatTokens(session.totalTokens))
                     .font(.system(.caption, design: .monospaced))
@@ -326,6 +327,28 @@ struct TokenBadge: View {
             return String(format: "%.1fK", Double(count) / 1_000)
         }
         return "\(count)"
+    }
+}
+
+/// Small tag distinguishing Claude, ZCode, and Hermes sessions in a merged list.
+struct SourceBadge: View {
+    let source: TokenSource
+
+    var body: some View {
+        Text(source.badgeText)
+            .font(.system(size: 8, weight: .semibold, design: .rounded))
+            .foregroundColor(.white)
+            .padding(.horizontal, 3)
+            .padding(.vertical, 1)
+            .background(color, in: RoundedRectangle(cornerRadius: 3))
+    }
+
+    private var color: Color {
+        switch source {
+        case .claude: return .blue
+        case .zcode: return .teal
+        case .hermes: return .indigo
+        }
     }
 }
 
