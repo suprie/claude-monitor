@@ -7,16 +7,21 @@ class TokenService: ObservableObject {
     @Published var isLoading = false
     @Published var lastUpdated: Date?
 
-    private let parser = TokenParser()
-    private let zcodeParser = ZCodeTokenParser()
-    private let hermesParser = HermesTokenParser()
+    /// All token-usage sources, queried concurrently on each refresh.
+    /// New sources can be added here without touching the refresh logic.
+    private let parsers: [TokenUsageParser]
     private var refreshTimer: Timer?
 
     var todayTokensFormatted: String {
         formatTokenCount(stats.daily)
     }
 
-    init() {
+    init(parsers: [TokenUsageParser] = [
+        TokenParser(),
+        ZCodeTokenParser(),
+        HermesTokenParser()
+    ]) {
+        self.parsers = parsers
         Task {
             await refresh()
         }
@@ -26,24 +31,44 @@ class TokenService: ObservableObject {
     func refresh() async {
         isLoading = true
 
-        // Parse Claude (JSONL), ZCode (SQLite), and Hermes (SQLite) usage
-        // concurrently.
-        async let claudeUsageTask = parser.parseAllTokenUsage()
-        async let zcodeUsageTask = zcodeParser.parseAllTokenUsage()
-        async let hermesUsageTask = hermesParser.parseAllTokenUsage()
-        async let titlesTask = parser.parseSessionTitles()
+        // Fan out across all parsers concurrently.
+        async let usageTask = collectUsage()
+        async let titlesTask = collectTitles()
 
-        let claudeUsage = await claudeUsageTask
-        let zcodeUsage = await zcodeUsageTask
-        let hermesUsage = await hermesUsageTask
+        let allUsage = await usageTask
         let titles = await titlesTask
 
-        let allUsage = claudeUsage + zcodeUsage + hermesUsage
         let calculatedStats = calculateStats(from: allUsage, sessionTitles: titles)
 
         stats = calculatedStats
         lastUpdated = Date()
         isLoading = false
+    }
+
+    private func collectUsage() async -> [TokenUsage] {
+        await withTaskGroup(of: [TokenUsage].self) { group in
+            for parser in parsers {
+                group.addTask { await parser.parseAllTokenUsage() }
+            }
+            var combined: [TokenUsage] = []
+            for await batch in group {
+                combined.append(contentsOf: batch)
+            }
+            return combined
+        }
+    }
+
+    private func collectTitles() async -> [String: String] {
+        await withTaskGroup(of: [String: String].self) { group in
+            for parser in parsers {
+                group.addTask { await parser.parseSessionTitles() }
+            }
+            var combined: [String: String] = [:]
+            for await batch in group {
+                combined.merge(batch) { _, new in new }
+            }
+            return combined
+        }
     }
 
     private func startAutoRefresh() {

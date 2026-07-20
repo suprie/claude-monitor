@@ -1,6 +1,6 @@
 import Foundation
 
-actor TokenParser {
+actor TokenParser: TokenUsageParser {
     private let projectsPath: String
     private let dateFormatter: ISO8601DateFormatter
 

@@ -5,11 +5,27 @@ struct MenuBarView: View {
     @EnvironmentObject var tokenService: TokenService
     @StateObject private var launchAtLogin = LaunchAtLoginManager()
     @State private var selectedPeriod: TimePeriod = .daily
+    @State private var sessionSortOption: SessionSortOption = .recent
 
     enum TimePeriod: String, CaseIterable {
         case daily = "Today"
         case weekly = "Week"
         case monthly = "Month"
+    }
+
+    /// How the per-session breakdown list is ordered.
+    enum SessionSortOption: String, CaseIterable {
+        /// Most recently updated session first.
+        case recent = "Recent"
+        /// Highest total token usage first.
+        case tokens = "Tokens"
+
+        var systemImage: String {
+            switch self {
+            case .recent: return "clock"
+            case .tokens: return "number"
+            }
+        }
     }
 
     var body: some View {
@@ -67,12 +83,13 @@ struct MenuBarView: View {
                         .font(.subheadline)
                         .foregroundColor(.secondary)
                     Spacer()
-                    Text("\(currentSessionBreakdown.count) session\(currentSessionBreakdown.count == 1 ? "" : "s")")
+                    Text("\(sortedSessionBreakdown.count) session\(sortedSessionBreakdown.count == 1 ? "" : "s")")
                         .font(.caption2)
                         .foregroundColor(.secondary)
+                    SessionSortMenu(selection: $sessionSortOption)
                 }
 
-                SessionBreakdownView(sessions: currentSessionBreakdown)
+                SessionBreakdownView(sessions: sortedSessionBreakdown)
             }
 
             Divider()
@@ -149,6 +166,16 @@ struct MenuBarView: View {
             return tokenService.stats.weeklySessionBreakdown
         case .monthly:
             return tokenService.stats.monthlySessionBreakdown
+        }
+    }
+
+    /// Sessions for the selected period, re-sorted per the user's sort choice.
+    private var sortedSessionBreakdown: [SessionTokenUsage] {
+        switch sessionSortOption {
+        case .recent:
+            return currentSessionBreakdown.sorted { $0.lastTimestamp > $1.lastTimestamp }
+        case .tokens:
+            return currentSessionBreakdown
         }
     }
 }
@@ -247,6 +274,33 @@ struct SessionBreakdownView: View {
 
     private var visibleSessions: [SessionTokenUsage] {
         isExpanded ? sessions : Array(sessions.prefix(previewLimit))
+    }
+}
+
+/// Compact menu for switching the session list sort order.
+struct SessionSortMenu: View {
+    @Binding var selection: MenuBarView.SessionSortOption
+
+    var body: some View {
+        Menu {
+            ForEach(MenuBarView.SessionSortOption.allCases, id: \.self) { option in
+                Button {
+                    selection = option
+                } label: {
+                    Label(option.rawValue, systemImage: option.systemImage)
+                }
+            }
+        } label: {
+            HStack(spacing: 2) {
+                Image(systemName: "arrow.up.arrow.down")
+                    .font(.caption2)
+                Text(selection.rawValue)
+                    .font(.caption2)
+            }
+            .foregroundColor(.secondary)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
     }
 }
 
