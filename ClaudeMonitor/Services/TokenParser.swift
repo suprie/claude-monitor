@@ -27,6 +27,11 @@ actor TokenParser: TokenUsageParser {
 
     /// Parses the `ai-title` line from each session file and returns a
     /// mapping of `sessionId` to its human-readable title.
+    ///
+    /// Recent Claude sessions no longer emit an `ai-title` line. As a
+    /// fallback, when no explicit title is found we derive one from the
+    /// first useful human prompt in the session. The explicit title always
+    /// wins when present.
     func parseSessionTitles() async -> [String: String] {
         var titles: [String: String] = [:]
 
@@ -39,7 +44,6 @@ actor TokenParser: TokenUsageParser {
                 titles[sessionId] = title
             }
         }
-
         return titles
     }
 
@@ -142,9 +146,12 @@ actor TokenParser: TokenUsageParser {
         return usages
     }
 
-    /// Extracts the AI-generated title (if any) for the session stored in `url`.
-    /// Falls back to the file name (without extension) as the sessionId if the
-    /// `ai-title` line does not carry one.
+    /// Extracts a title for the session stored in `url`.
+    ///
+    /// Prefers the AI-generated `ai-title` line. When none is present — which
+    /// is the case for recent Claude sessions — derives a title from the first
+    /// useful human prompt in the file. Falls back to the file name (without
+    /// extension) as the sessionId when a line does not carry one.
     private func parseTitles(at url: URL) async -> [String: String] {
         var titles: [String: String] = [:]
 
@@ -159,18 +166,77 @@ actor TokenParser: TokenUsageParser {
         let decoder = JSONDecoder()
         let lines = content.components(separatedBy: .newlines)
 
+        var resolvedSessionId = fallbackSessionId
+        var firstPromptTitle: String?
+
         for line in lines where !line.isEmpty {
-            guard let lineData = line.data(using: .utf8),
-                  let titleMessage = try? decoder.decode(SessionTitleMessage.self, from: lineData),
-                  titleMessage.type == "ai-title",
-                  let title = titleMessage.aiTitle,
-                  !title.isEmpty else {
+            guard let lineData = line.data(using: .utf8) else { continue }
+
+            // Explicit AI title wins; once we have it, no need to keep scanning.
+            if let titleMessage = try? decoder.decode(SessionTitleMessage.self, from: lineData),
+               titleMessage.type == "ai-title",
+               let title = titleMessage.aiTitle,
+               !title.isEmpty {
+                let sessionId = titleMessage.sessionId ?? fallbackSessionId
+                resolvedSessionId = sessionId
+                titles[sessionId] = title
                 continue
             }
-            let sessionId = titleMessage.sessionId ?? fallbackSessionId
-            titles[sessionId] = title
+
+            // Capture the first useful prompt as a fallback. Only set once
+            // per file so we keep the very first user turn.
+            if firstPromptTitle == nil,
+               let userMessage = try? decoder.decode(UserPromptMessage.self, from: lineData),
+               userMessage.type == "user" {
+                // Track the authoritative sessionId from the first line that
+                // carries one, so the prompt-derived title is keyed correctly.
+                if let candidate = try? decoder.decode(AssistantMessage.self, from: lineData),
+                   let sessionId = candidate.sessionId {
+                    resolvedSessionId = sessionId
+                }
+                if let promptTitle = Self.title(fromPrompt: userMessage.message?.content?.text) {
+                    firstPromptTitle = promptTitle
+                }
+            }
+        }
+
+        // No explicit title — fall back to the first prompt if we found one.
+        if titles[resolvedSessionId] == nil, let promptTitle = firstPromptTitle {
+            titles[resolvedSessionId] = promptTitle
         }
 
         return titles
+    }
+
+    /// Reduces a raw user prompt to a short, human-readable title.
+    /// Returns nil when the prompt is a system preamble, an interruption
+    /// notice, or otherwise unsuitable to use as a label.
+    private static func title(fromPrompt text: String?) -> String? {
+        guard let text, !text.isEmpty else { return nil }
+
+        // Strip any leading skill/command preamble that the harness injects,
+        // e.g. "Base directory for this skill: ...", so the first real turn
+        // is what surfaces in the UI.
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        // Skip boilerplate that isn't a meaningful description of the work.
+        let boilerplate = [
+            "<local-command", "<command-message", "<task-notification",
+            "[Request interrupted"
+        ]
+        if boilerplate.contains(where: { trimmed.hasPrefix($0) }) {
+            return nil
+        }
+
+        // Collapse whitespace and truncate for a compact menu label.
+        let collapsed = trimmed.replacingOccurrences(
+            of: #"\s+"#,
+            with: " ",
+            options: .regularExpression
+        )
+        let limit = 60
+        if collapsed.count <= limit { return collapsed }
+        return collapsed.prefix(limit).trimmingCharacters(in: .whitespaces) + "…"
     }
 }

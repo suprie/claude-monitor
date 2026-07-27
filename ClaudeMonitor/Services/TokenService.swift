@@ -37,7 +37,6 @@ class TokenService: ObservableObject {
 
         let allUsage = await usageTask
         let titles = await titlesTask
-
         let calculatedStats = calculateStats(from: allUsage, sessionTitles: titles)
 
         stats = calculatedStats
@@ -246,7 +245,7 @@ class TokenService: ObservableObject {
     }
 
     private func convertToSessionUsageArray(_ breakdown: [String: SessionAccumulator], titles: [String: String]) -> [SessionTokenUsage] {
-        breakdown
+        return breakdown
             .map { sessionId, acc in
                 SessionTokenUsage(
                     sessionId: sessionId,

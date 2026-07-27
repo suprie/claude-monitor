@@ -103,9 +103,21 @@ struct SessionTokenUsage: Identifiable {
     }
 
     /// Last path component of the project, human-readable.
+    ///
+    /// `projectPath` arrives in one of two shapes depending on source:
+    ///   - a real working-directory path (`/Users/foo/.../my-project`) from
+    ///     the JSONL `cwd` / the SQLite `directory` column, or
+    ///   - the dash-encoded folder name (`-Users-foo-...-my-project`) used as
+    ///     a fallback when no `cwd` is present.
+    /// A leading `/` distinguishes the two: real paths are used as-is so a
+    /// hyphen-bearing directory such as `application-tracker` is preserved;
+    /// encoded names have their dashes expanded to slashes first.
     var projectDisplayName: String {
-        let cleaned = projectPath.replacingOccurrences(of: "-", with: "/")
-        return (cleaned as NSString).lastPathComponent
+        if projectPath.hasPrefix("/") {
+            return (projectPath as NSString).lastPathComponent
+        }
+        let asPath = projectPath.replacingOccurrences(of: "-", with: "/")
+        return (asPath as NSString).lastPathComponent
     }
 
     /// Format session timestamps relative to now, e.g. "2h ago".
@@ -252,4 +264,58 @@ struct SessionTitleMessage: Codable {
     let type: String
     let sessionId: String?
     let aiTitle: String?
+}
+
+/// Represents a `user` line in a session file. Used only to derive a
+/// display title from the first human prompt when no `ai-title` exists.
+struct UserPromptMessage: Codable {
+    let type: String
+    let message: Message?
+
+    struct Message: Codable {
+        /// `content` is either a plain string or an array of parts, each
+        /// `{ "type": "text", "text": "..." }`. We decode to an untyped
+        /// container so we can handle both shapes without a custom decoder.
+        let content: Content?
+
+        enum Content: Codable {
+            case text(String)
+            case parts([Part])
+
+            struct Part: Codable {
+                let type: String?
+                let text: String?
+            }
+
+            init(from decoder: Decoder) throws {
+                let container = try decoder.singleValueContainer()
+                if let string = try? container.decode(String.self) {
+                    self = .text(string)
+                } else if let parts = try? container.decode([Part].self) {
+                    self = .parts(parts)
+                } else {
+                    self = .text("")
+                }
+            }
+
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                switch self {
+                case .text(let string):
+                    try container.encode(string)
+                case .parts(let parts):
+                    try container.encode(parts)
+                }
+            }
+
+            /// Plain text of this content, regardless of shape.
+            var text: String {
+                switch self {
+                case .text(let string): return string
+                case .parts(let parts):
+                    return parts.compactMap { $0.text }.joined(separator: " ")
+                }
+            }
+        }
+    }
 }

@@ -41,6 +41,36 @@ actor ZCodeTokenParser: TokenUsageParser {
 
         return usages
     }
+    
+    func parseSessionTitles() async -> [String : String] {
+        // Bail out silently when ZCode isn't installed / hasn't created a DB.
+        guard FileManager.default.fileExists(atPath: dbPath) else {
+            return [:]
+        }
+        
+        var titles: [String: String] = [:]
+        
+        guard let db = openReadOnly() else {
+            return [:]
+        }
+        defer { sqlite3_close(db) }
+        sqlite3_busy_timeout(db, 2_000)
+        let sql = "SELECT id, title FROM session;"
+        var stmt: OpaquePointer?
+        defer { sqlite3_finalize(stmt) }
+        guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK,
+              let stmt = stmt else {
+            return [:]
+        }
+        
+        while sqlite3_step(stmt) == SQLITE_ROW {
+            guard let idC = sqlite3_column_text(stmt, 0) else { continue }
+            let id = String(cString: idC)
+            let title = textColumn(stmt, 1) ?? ""
+            titles[id] = title
+        }
+        return titles
+    }
 
     // MARK: - Helpers
 
