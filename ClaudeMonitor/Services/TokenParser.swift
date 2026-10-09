@@ -235,8 +235,7 @@ actor TokenParser: TokenUsageParser {
             with: " ",
             options: .regularExpression
         )
-        let limit = 60
-        if collapsed.count <= limit { return collapsed }
-        return collapsed.prefix(limit).trimmingCharacters(in: .whitespaces) + "…"
+        
+        return collapsed
     }
 }

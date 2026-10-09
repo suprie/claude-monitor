@@ -1,11 +1,12 @@
 import Foundation
 
 /// Where a token-usage record originated: Claude (JSONL), ZCode (SQLite),
-/// or Hermes (SQLite).
+/// Hermes (SQLite), or Codex (JSONL).
 enum TokenSource: String, Codable {
     case claude
     case zcode
     case hermes
+    case codex
 
     /// Short uppercase tag for compact UI badges, e.g. "CC" / "ZC" / "HE".
     var badgeText: String {
@@ -13,6 +14,7 @@ enum TokenSource: String, Codable {
         case .claude: return "CC"
         case .zcode: return "ZC"
         case .hermes: return "HE"
+        case .codex: return "CX"
         }
     }
 
@@ -22,6 +24,7 @@ enum TokenSource: String, Codable {
         case .claude: return "Claude"
         case .zcode: return "ZCode"
         case .hermes: return "Hermes"
+        case .codex: return "Codex"
         }
     }
 }
@@ -155,7 +158,7 @@ struct ModelInfo {
             }
             return "Haiku"
         } else if lower.contains("glm") {
-            // ZCode models, e.g. "GLM-5.2", "glm-5.2"
+            // ZCode models, e.g. "GLM-5.2", "glm-5.2
             if lower.contains("5.2") || lower.contains("5-2") {
                 return "GLM 5.2"
             } else if lower.contains("4.5") || lower.contains("4-5") {
@@ -163,7 +166,7 @@ struct ModelInfo {
             } else if lower.contains("4") {
                 return "GLM 4"
             }
-            return "GLM"
+            return lower
         }
         return model
     }

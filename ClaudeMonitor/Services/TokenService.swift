@@ -19,7 +19,8 @@ class TokenService: ObservableObject {
     init(parsers: [TokenUsageParser] = [
         TokenParser(),
         ZCodeTokenParser(),
-        HermesTokenParser()
+        HermesTokenParser(),
+        CodexTokenParser()
     ]) {
         self.parsers = parsers
         Task {

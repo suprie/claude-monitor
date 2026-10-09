@@ -2,7 +2,7 @@
 prd: prd-codex-parser
 epic: codex-token-tracking
 milestone: "0.1.3"
-status: proposed
+status: completed
 description: >
   Discover Codex CLI's session/token storage format and add a
   CodexTokenParser so Codex usage shows up in TokenService and the menu bar
@@ -41,25 +41,45 @@ per-session breakdown under-represent their actual usage across tools.
 
 ## Design
 
-_Fill in once Phase 1 discovery lands — the storage format determines
-whether this parser reads JSONL (like `TokenParser`) or SQLite (like
-`ZCodeTokenParser`/`HermesTokenParser`)._
+Codex CLI writes one JSONL rollout file per session at
+`~/.codex/sessions/<YYYY>/<MM>/<DD>/rollout-<timestamp>-<uuid>.jsonl` — so
+`CodexTokenParser` reads JSONL line-by-line like `TokenParser`, not SQLite
+like `ZCodeTokenParser`/`HermesTokenParser`.
+
+Per rollout file:
+- `session_meta` line → `sessionId` = `payload.id`, `projectPath` = `payload.cwd`
+- `turn_context` lines → `model` = latest `payload.model` seen before each
+  `token_count` event (e.g. `"gpt-5-codex"`)
+- `event_msg` lines with `payload.type == "token_count"` → one `TokenUsage`
+  record per event, using `info.last_token_usage` (per-turn delta, not
+  `info.total_token_usage` which is session-cumulative):
+  - `timestamp` = event's top-level `timestamp`
+  - `inputTokens` = `last_token_usage.input_tokens`
+  - `cacheReadTokens` = `last_token_usage.cached_input_tokens`
+  - `cacheCreationTokens` = `0` (Codex has no creation/read split)
+  - `outputTokens` = `last_token_usage.output_tokens` +
+    `last_token_usage.reasoning_output_tokens` (Codex reports reasoning
+    separately; `TokenUsage` has no reasoning field, so fold it into output,
+    matching how `ZCodeTokenParser` handles reasoning tokens)
+  - `source` = `.codex`
+
+Full rationale in `decisions.md` (2026-07-27 entries).
 
 ## Phases
 
 ### Phase 1 — Discovery
-- [ ] `codex-parser/discover-storage-format` Find Codex CLI's session/token storage location and format
+- [x] `codex-parser/discover-storage-format` Find Codex CLI's session/token storage location and format
 
 ### Phase 2 — Parser
-- [ ] `codex-parser/add-token-source-case` Add `.codex` case to `TokenSource` enum (tag, label)
-- [ ] `codex-parser/implement-parser` Implement `CodexTokenParser` conforming to `TokenUsageParser`
+- [x] `codex-parser/add-token-source-case` Add `.codex` case to `TokenSource` enum (tag, label)
+- [x] `codex-parser/implement-parser` Implement `CodexTokenParser` conforming to `TokenUsageParser`
 
 ### Phase 3 — Wiring
-- [ ] `codex-parser/register-in-service` Register `CodexTokenParser()` in `TokenService`'s parsers array
+- [x] `codex-parser/register-in-service` Register `CodexTokenParser()` in `TokenService`'s parsers array
 
 ### Phase 4 — UI & Verification
-- [ ] `codex-parser/verify-ui-rendering` Verify/update `MenuBarView` renders Codex source (badge, per-session breakdown, totals)
-- [ ] `codex-parser/parser-test-fixture` Add a parser test using a real Codex usage file fixture
+- [x] `codex-parser/verify-ui-rendering` Verify/update `MenuBarView` renders Codex source (badge, per-session breakdown, totals)
+- [x] `codex-parser/parser-test-fixture` Add a parser test using a real Codex usage file fixture
 
 ## Open Questions
 

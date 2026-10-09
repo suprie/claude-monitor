@@ -306,6 +306,7 @@ struct SessionSortMenu: View {
 
 struct SessionRow: View {
     let session: SessionTokenUsage
+    @State var isHovering: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
@@ -317,6 +318,8 @@ struct SessionRow: View {
                     .font(.system(.caption, design: .default))
                     .foregroundColor(.primary)
                     .lineLimit(1)
+                    .help(session.title ?? "No title")
+                
                 SourceBadge(source: session.source)
                 Spacer(minLength: 0)
                 Text(formatTokens(session.totalTokens))
@@ -335,6 +338,15 @@ struct SessionRow: View {
                 Text(session.relativeTimestamp())
                     .font(.caption2)
                     .foregroundColor(.secondary)
+            }
+            HStack {
+                Text(session.sessionId)
+                    .font(.caption2)
+
+                Text(session.projectPath)
+                    .font(.caption2)
+                    .help(session.projectPath)
+
             }
         }
         .padding(.vertical, 2)
@@ -402,6 +414,7 @@ struct SourceBadge: View {
         case .claude: return .blue
         case .zcode: return .teal
         case .hermes: return .indigo
+        case .codex: return .green
         }
     }
 }
