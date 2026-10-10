@@ -23,7 +23,7 @@ final class TokenService: ObservableObject {
         query.dashboard(in: period, from: snapshot, provider: provider, now: now)
     }
 
-    init(parsers: [TokenUsageParser] = [TokenParser(), ZCodeTokenParser(), HermesTokenParser(), CodexTokenParser()], calendar: Calendar = .current) {
+    init(parsers: [TokenUsageParser] = [TokenParser(), ZCodeTokenParser(), HermesTokenParser(), CodexTokenParser(), DeepSeekHarnessTokenParser()], calendar: Calendar = .current) {
         self.parsers = parsers
         self.query = UsageQuery(calendar: calendar)
         if let persistentRepository = try? UsageRepository() {

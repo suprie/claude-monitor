@@ -22,6 +22,7 @@
 		94B0E4015ABED114F80231D4 /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 540F7A80A3C7F2A06002CA0F /* LaunchAtLoginManager.swift */; };
 		9C895EA746E41B3350F810D8 /* TokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6C6458659AAD291A80916F05 /* TokenParser.swift */; };
 		9D475DB209E30BF029EE98BD /* UsageRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7654305435A65536DA784276 /* UsageRepositoryTests.swift */; };
+		A6C0D48987D0395CEDEB8DE3 /* DeepSeekHarnessTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B6FD40665BEE86671FD6AD76 /* DeepSeekHarnessTokenParser.swift */; };
 		B22289822886E98FFB8A5ED2 /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF957E2F57872E4A31B124A2 /* TokenService.swift */; };
 		B78028081A61480DA83B3960 /* UsageQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 469E7BC2126759E0EA1051EC /* UsageQuery.swift */; };
 		C22E0DAE2B5000F41D05493F /* CodexTokenParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29BB80DFFA27F82037027DDB /* CodexTokenParserTests.swift */; };
@@ -60,6 +61,7 @@
 		AB160042B03EC8BF42856A3D /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		AC7063FEAC8C8959E53DD2F2 /* codex-rollout-fixture.jsonl */ = {isa = PBXFileReference; path = "codex-rollout-fixture.jsonl"; sourceTree = "<group>"; };
 		AD8B375339D1B333D2F23612 /* TokenMonitor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TokenMonitor.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B6FD40665BEE86671FD6AD76 /* DeepSeekHarnessTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSeekHarnessTokenParser.swift; sourceTree = "<group>"; };
 		CDFAA320607273FADE038B7A /* TokenUsageParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUsageParser.swift; sourceTree = "<group>"; };
 		D53177779DF44A5B5439A441 /* UsageQueryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageQueryTests.swift; sourceTree = "<group>"; };
 		E3765AFD2282C06B0C308CDD /* TokenMonitorTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TokenMonitorTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -75,6 +77,7 @@
 			isa = PBXGroup;
 			children = (
 				E9321ED50842DC8831EE1DAA /* CodexTokenParser.swift */,
+				B6FD40665BEE86671FD6AD76 /* DeepSeekHarnessTokenParser.swift */,
 				1AC98B391ABC8BC504B39521 /* HermesTokenParser.swift */,
 				540F7A80A3C7F2A06002CA0F /* LaunchAtLoginManager.swift */,
 				6C6458659AAD291A80916F05 /* TokenParser.swift */,
@@ -271,6 +274,7 @@
 			files = (
 				01D7C46753F30320879CA48E /* ClaudeMonitorApp.swift in Sources */,
 				8F64DC3E7E9C338447D6B8A9 /* CodexTokenParser.swift in Sources */,
+				A6C0D48987D0395CEDEB8DE3 /* DeepSeekHarnessTokenParser.swift in Sources */,
 				24096C32E97EB028AC542BE4 /* HermesTokenParser.swift in Sources */,
 				281D2C7ECEEF083635F6E5C4 /* HomeView.swift in Sources */,
 				94B0E4015ABED114F80231D4 /* LaunchAtLoginManager.swift in Sources */,

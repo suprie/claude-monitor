@@ -1,12 +1,13 @@
 import Foundation
 
 /// Where a token-usage record originated: Claude (JSONL), ZCode (SQLite),
-/// Hermes (SQLite), or Codex (JSONL).
+/// Hermes (SQLite), Codex (JSONL), or DeepSeek Harness (JSON cache).
 enum TokenSource: String, Codable, CaseIterable, Sendable {
     case claude
     case zcode
     case hermes
     case codex
+    case deepseekHarness = "deepseek-harness"
 
     /// Short uppercase tag for compact UI badges, e.g. "CC" / "ZC" / "HE".
     var badgeText: String {
@@ -15,6 +16,7 @@ enum TokenSource: String, Codable, CaseIterable, Sendable {
         case .zcode: return "ZC"
         case .hermes: return "HE"
         case .codex: return "CX"
+        case .deepseekHarness: return "DS"
         }
     }
 
@@ -25,6 +27,7 @@ enum TokenSource: String, Codable, CaseIterable, Sendable {
         case .zcode: return "ZCode"
         case .hermes: return "Hermes"
         case .codex: return "Codex"
+        case .deepseekHarness: return "DeepSeek Harness"
         }
     }
 }

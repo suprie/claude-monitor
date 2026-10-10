@@ -426,6 +426,7 @@ struct SourceBadge: View {
         case .zcode: return .teal
         case .hermes: return .indigo
         case .codex: return .green
+        case .deepseekHarness: return .orange
         }
     }
 }

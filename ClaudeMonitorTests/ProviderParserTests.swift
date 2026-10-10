@@ -50,6 +50,84 @@ final class ProviderParserTests: XCTestCase {
         XCTAssertTrue(usages.allSatisfy { $0.granularity == .lifetimeSessionModelAggregate })
     }
 
+    func testDeepSeekHarnessParsesSessionAggregateAndTitle() async throws {
+        let directory = try makeDirectory()
+        let sessionURL = directory.appendingPathComponent("dsh-session.json")
+        let json = #"""
+        {
+          "version": 7,
+          "record": {
+            "identity": {
+              "formatVersion": 4,
+              "createdAt": 1791186271265,
+              "cwd": "/tmp/deepseek-project",
+              "isSeeded": false,
+              "inheritedEventCount": 0
+            },
+            "rows": {
+              "title": { "ver": 1, "seq": 108, "val": "Harness skills location" },
+              "tokenUsage": {
+                "ver": 2,
+                "seq": 108,
+                "val": {
+                  "totals": {
+                    "uncachedInputTokens": 39737,
+                    "outputTokens": 4492,
+                    "cacheReadTokens": 386432,
+                    "cacheWriteTokens": 12
+                  },
+                  "last": {}
+                }
+              }
+            }
+          }
+        }
+        """
+        try json.data(using: .utf8)!.write(to: sessionURL)
+
+        let parser = DeepSeekHarnessTokenParser(
+            sessionsPath: directory.path,
+            model: "deepseek-flash",
+            providerRawValue: "deepseek-account"
+        )
+        let usages = await parser.parseAllTokenUsage()
+        let usage = try XCTUnwrap(usages.first)
+        let titles = await parser.parseSessionTitles()
+
+        XCTAssertEqual(usages.count, 1)
+        XCTAssertEqual(usage.sessionId, "dsh-session")
+        XCTAssertEqual(usage.projectPath, "/tmp/deepseek-project")
+        XCTAssertEqual(usage.model, "deepseek-flash")
+        XCTAssertEqual(usage.provider, BillingProvider(rawValue: "deepseek-account"))
+        XCTAssertEqual(usage.inputTokens, 39737)
+        XCTAssertEqual(usage.outputTokens, 4492)
+        XCTAssertEqual(usage.cacheReadTokens, 386432)
+        XCTAssertEqual(usage.cacheCreationTokens, 12)
+        XCTAssertEqual(usage.providerProvenance, .sourceConfiguration)
+        XCTAssertEqual(usage.granularity, .lifetimeSessionModelAggregate)
+        XCTAssertEqual(titles[SessionKey(source: .deepseekHarness, sessionId: "dsh-session")], "Harness skills location")
+    }
+
+    func testDeepSeekHarnessSkipsMalformedFilesAndReportsMissingDirectory() async throws {
+        let directory = try makeDirectory()
+        try Data("not json".utf8).write(to: directory.appendingPathComponent("broken.json"))
+        let parser = DeepSeekHarnessTokenParser(sessionsPath: directory.path)
+
+        XCTAssertTrue(await parser.parseAllTokenUsage().isEmpty)
+        XCTAssertEqual((await parser.parseSource()).status, .succeeded)
+
+        let missing = DeepSeekHarnessTokenParser(sessionsPath: directory.appendingPathComponent("missing").path)
+        XCTAssertEqual((await missing.parseSource()).status, .missing)
+    }
+
+    private func makeDirectory() throws -> URL {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("ProviderParserTests-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        temporaryURLs.append(url)
+        return url
+    }
+
     private func makeDatabase() throws -> URL {
         let url = FileManager.default.temporaryDirectory
             .appendingPathComponent("ProviderParserTests-\(UUID().uuidString).sqlite")
