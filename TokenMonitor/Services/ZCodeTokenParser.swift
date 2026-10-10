@@ -42,6 +42,11 @@ actor ZCodeTokenParser: TokenUsageParser {
 
         return usages
     }
+
+    func parseSource() async -> SourceImportResult {
+        guard FileManager.default.fileExists(atPath: dbPath) else { return .missing(source: source) }
+        return .succeeded(source: source, records: await parseAllTokenUsage(), titles: await parseSessionTitles(), sourceIdentity: dbPath)
+    }
     
     func parseSessionTitles() async -> [SessionKey : String] {
         // Bail out silently when ZCode isn't installed / hasn't created a DB.

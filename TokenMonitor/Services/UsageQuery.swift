@@ -29,11 +29,13 @@ struct UsageSnapshot: Sendable {
     let records: [TokenUsage]
     let titles: [SessionKey: String]
     let createdAt: Date
+    let lastSuccessfulRefresh: Date?
 
-    init(records: [TokenUsage] = [], titles: [SessionKey: String] = [:], createdAt: Date = Date()) {
+    init(records: [TokenUsage] = [], titles: [SessionKey: String] = [:], createdAt: Date = Date(), lastSuccessfulRefresh: Date? = nil) {
         self.records = records
         self.titles = titles
         self.createdAt = createdAt
+        self.lastSuccessfulRefresh = lastSuccessfulRefresh
     }
 }
 

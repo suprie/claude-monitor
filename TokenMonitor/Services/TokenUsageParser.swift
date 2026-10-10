@@ -15,12 +15,22 @@ protocol TokenUsageParser: Sendable {
     /// Mapping of source-qualified session identity → human-readable title, for sources that store
     /// titles out-of-band from the usage rows. Sources without titles return `[:]`.
     func parseSessionTitles() async -> [SessionKey: String]
+
+    /// Reads one complete source snapshot and distinguishes an absent source
+    /// from a successful empty read.
+    func parseSource() async -> SourceImportResult
 }
 
 /// Default "no titles" implementation — used by the SQLite-backed parsers,
 /// which already embed the working directory in each usage row.
 extension TokenUsageParser {
+    var source: TokenSource { .claude }
+
     func parseSessionTitles() async -> [SessionKey: String] {
         [:]
+    }
+
+    func parseSource() async -> SourceImportResult {
+        SourceImportResult.succeeded(source: source, records: await parseAllTokenUsage(), titles: await parseSessionTitles())
     }
 }

@@ -43,6 +43,11 @@ actor HermesTokenParser: TokenUsageParser {
         return usages
     }
 
+    func parseSource() async -> SourceImportResult {
+        guard FileManager.default.fileExists(atPath: dbPath) else { return .missing(source: source) }
+        return .succeeded(source: source, records: await parseAllTokenUsage(), titles: [:], sourceIdentity: dbPath)
+    }
+
     // MARK: - Helpers
 
     /// Opens the database read-only via a `file:` URI so we never risk

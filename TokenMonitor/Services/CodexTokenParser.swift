@@ -30,6 +30,11 @@ actor CodexTokenParser: TokenUsageParser {
         return allUsage
     }
 
+    func parseSource() async -> SourceImportResult {
+        guard FileManager.default.fileExists(atPath: sessionsPath) else { return .missing(source: source) }
+        return .succeeded(source: source, records: await parseAllTokenUsage(), titles: [:], sourceIdentity: sessionsPath)
+    }
+
     private func findJSONLFiles() -> [URL]? {
         let fileManager = FileManager.default
         let sessionsURL = URL(fileURLWithPath: sessionsPath)

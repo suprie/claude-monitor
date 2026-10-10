@@ -26,6 +26,11 @@ actor TokenParser: TokenUsageParser {
         return allUsage
     }
 
+    func parseSource() async -> SourceImportResult {
+        guard FileManager.default.fileExists(atPath: projectsPath) else { return .missing(source: source) }
+        return .succeeded(source: source, records: await parseAllTokenUsage(), titles: await parseSessionTitles(), sourceIdentity: projectsPath)
+    }
+
     /// Parses the `ai-title` line from each session file and returns a
     /// mapping of `sessionId` to its human-readable title.
     ///

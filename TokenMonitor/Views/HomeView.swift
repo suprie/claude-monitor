@@ -7,7 +7,7 @@ struct HomeView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
-                HomeHeader(lastUpdated: tokenService.lastUpdated, isLoading: tokenService.isLoading)
+                HomeHeader(lastUpdated: tokenService.lastUpdated, isLoading: tokenService.isLoading, cacheError: tokenService.cacheError)
                 UsageSummarySection(
                     daily: tokenService.stats.daily,
                     weekly: tokenService.stats.weekly,
@@ -19,6 +19,7 @@ struct HomeView: View {
                     monthly: tokenService.stats.monthlyModelBreakdown
                 )
                 RecentUsageSection(sessions: tokenService.stats.weeklySessionBreakdown)
+                SourceHealthSection(statuses: tokenService.sourceStatuses)
             }
             .padding(28)
         }
@@ -36,9 +37,67 @@ struct HomeView: View {
     }
 }
 
+struct SourceHealthSection: View {
+    let statuses: [SourceSyncStatus]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text("Source status")
+                .font(.title2.weight(.semibold))
+
+            if statuses.isEmpty {
+                Text("No source refresh has completed yet.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(statuses) { status in
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(statusColor(status))
+                            .frame(width: 8, height: 8)
+                        Text(status.source.displayName)
+                        Spacer()
+                        Text(statusTitle(status))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                    if status.id != statuses.last?.id { Divider() }
+                }
+            }
+        }
+        .padding(20)
+        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func statusColor(_ status: SourceSyncStatus) -> Color {
+        switch status.status {
+        case .succeeded: return .green
+        case .missing: return .gray
+        case .failed: return .red
+        }
+    }
+
+    private func statusTitle(_ status: SourceSyncStatus) -> String {
+        switch status.status {
+        case .succeeded:
+            if let date = status.lastSuccessfulRefresh {
+                let formatter = RelativeDateTimeFormatter()
+                formatter.unitsStyle = .short
+                return "Updated \(formatter.localizedString(for: date, relativeTo: Date()))"
+            }
+            return "Available"
+        case .missing:
+            return status.lastSuccessfulRefresh == nil ? "Unavailable" : "Unavailable · last known data"
+        case .failed:
+            return status.errorDescription ?? "Refresh failed"
+        }
+    }
+}
+
 struct HomeHeader: View {
     let lastUpdated: Date?
     let isLoading: Bool
+    let cacheError: String?
 
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
@@ -56,6 +115,11 @@ struct HomeHeader: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
+        }
+        if let cacheError {
+            Label(cacheError, systemImage: "exclamationmark.triangle")
+                .font(.caption)
+                .foregroundStyle(.orange)
         }
     }
 }
