@@ -6,6 +6,9 @@ import Foundation
 /// can be stored on the `@MainActor`-isolated `TokenService` and fanned out
 /// across a `TaskGroup`.
 protocol TokenUsageParser: Sendable {
+    /// The recording application represented by this parser.
+    var source: TokenSource { get }
+
     /// All token-usage records this source can produce.
     func parseAllTokenUsage() async -> [TokenUsage]
 

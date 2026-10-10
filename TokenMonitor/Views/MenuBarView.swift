@@ -328,6 +328,10 @@ struct SessionRow: View {
                     .help(session.title ?? "No title")
                 
                 SourceBadge(source: session.source)
+                Text(session.providerDisplayName)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
                 Spacer(minLength: 0)
                 Text(formatTokens(session.totalTokens))
                     .font(.system(.caption, design: .monospaced))

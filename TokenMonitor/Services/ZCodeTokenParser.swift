@@ -13,6 +13,7 @@ import SQLite3
 /// The database is opened **read-only**, so concurrent writes from a running
 /// ZCode process are safe (SQLite WAL handles readers and writers concurrently).
 actor ZCodeTokenParser: TokenUsageParser {
+    let source: TokenSource = .zcode
     private let dbPath: String
 
     init(dbPath: String = NSHomeDirectory() + "/.zcode/cli/db/db.sqlite") {

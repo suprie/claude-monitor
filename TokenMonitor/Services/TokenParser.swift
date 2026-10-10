@@ -1,6 +1,7 @@
 import Foundation
 
 actor TokenParser: TokenUsageParser {
+    let source: TokenSource = .claude
     private let projectsPath: String
     private let dateFormatter: ISO8601DateFormatter
 

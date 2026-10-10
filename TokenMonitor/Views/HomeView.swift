@@ -208,7 +208,7 @@ struct ModelLegend: View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), alignment: .leading)], alignment: .leading) {
             ForEach(models, id: \.chartID) { model in
                 Label {
-                    Text("\(model.displayName) · \(model.source.displayName)")
+                    Text("\(model.displayName) · \(model.provider.displayName) · \(model.source.displayName)")
                         .lineLimit(1)
                 } icon: {
                     Circle()
@@ -253,7 +253,7 @@ struct RecentUsageSection: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(session.displayName)
                                 .lineLimit(1)
-                            Text("\(session.source.displayName) · \(session.relativeTimestamp())")
+                            Text("\(session.source.displayName) · \(session.providerDisplayName) · \(session.relativeTimestamp())")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }

@@ -212,6 +212,11 @@ struct SessionTokenUsage: Identifiable {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
     }
 
+    var providerDisplayName: String {
+        if providers.count > 1 { return "Multiple providers" }
+        return providers.first?.displayName ?? BillingProvider.unknown.displayName
+    }
+
     var displayName: String {
         if let title = title, !title.isEmpty {
             return title

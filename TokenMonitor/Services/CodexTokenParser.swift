@@ -8,6 +8,7 @@ import Foundation
 /// and `event_msg` lines whose payload type `token_count` carries the
 /// per-turn token delta. This parser mirrors `TokenParser`'s JSONL scan.
 actor CodexTokenParser: TokenUsageParser {
+    let source: TokenSource = .codex
     private let sessionsPath: String
     private let dateFormatter: ISO8601DateFormatter
 
