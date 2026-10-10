@@ -191,7 +191,13 @@ struct DailyProviderChart: View {
                 .chartYAxis {
                     AxisMarks { value in
                         AxisGridLine()
-                        AxisValueLabel()
+                        AxisValueLabel {
+                            if let count = value.as(Int.self) {
+                                Text(TokenCountFormatter.string(count))
+                            } else if let count = value.as(Double.self) {
+                                Text(TokenCountFormatter.string(count))
+                            }
+                        }
                     }
                 }
                 .chartXSelection(value: $selectedDay)

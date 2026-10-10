@@ -116,7 +116,7 @@ Done when: users can compare token usage across providers; graph and table agree
 
 Primary files: new Home/dashboard views; query layer and SwiftData repository from phases 2–3b.
 
-### Phase 5 — Browse all conversations
+### Phase 5 — Browse all conversations ✅
 
 Scope:
 - Build a full conversation table from available local history.
@@ -124,11 +124,11 @@ Scope:
 - Sort by recent activity or token usage; use “Multiple models/providers” where appropriate.
 - Selecting a conversation opens its detail destination. Show source-qualified titles and identifiers consistently.
 
-Done when: a user can find an old conversation and open it; table totals reflect the filters; active selection survives refresh. Verify filtering and selection behavior.
+Done when: a user can find an old conversation and open it; table totals reflect the filters; active selection survives refresh. Verify filtering and selection behavior. Implemented with source-qualified stable selection keys, period/source/provider/model filters, search, recent/token sorting, and filtered totals.
 
 Primary files: new Conversations view and conversation query types.
 
-### Phase 6 — Explain conversation token usage
+### Phase 6 — Explain conversation token usage ✅
 
 Scope:
 - Show conversation title, project, source, providers, activity dates, lifetime totals, and selected-period totals.
@@ -136,7 +136,7 @@ Scope:
 - Show usage events over time only for sources that supply event-level data; show aggregate rows for other sources.
 - Add a simple route back to the filtered conversation list.
 
-Done when: the conversation total equals its breakdown, mixed-model conversations remain accurate, and aggregate-only sources do not display an invented request timeline.
+Done when: the conversation total equals its breakdown, mixed-model conversations remain accurate, and aggregate-only sources do not display an invented request timeline. Implemented with lifetime and selected-period cards, model/provider/category breakdowns, event timelines, aggregate-only messaging, and a back route to the list.
 
 Primary files: new ConversationDetail view; shared query types.
 

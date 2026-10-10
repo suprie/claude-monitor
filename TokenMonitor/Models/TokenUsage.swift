@@ -308,6 +308,25 @@ struct ModelInfo {
     }
 }
 
+enum TokenCountFormatter {
+    private static let units = ["", "K", "M", "G", "T", "P", "E"]
+
+    static func string(_ count: Int) -> String {
+        string(Double(count))
+    }
+
+    static func string(_ value: Double) -> String {
+        let absoluteValue = abs(value)
+        guard absoluteValue >= 1_000 else { return String(Int(value.rounded())) }
+
+        let exponent = min(Int(log10(absoluteValue) / 3), units.count - 1)
+        let scaled = value / pow(1_000, Double(exponent))
+        let rounded = scaled.rounded(.toNearestOrAwayFromZero)
+        let display = rounded == scaled ? String(format: "%.0f", scaled) : String(format: "%.1f", scaled)
+        return "\(display)\(units[exponent])"
+    }
+}
+
 struct DailyTokenUsage: Identifiable {
     let date: Date
     let inputTokens: Int

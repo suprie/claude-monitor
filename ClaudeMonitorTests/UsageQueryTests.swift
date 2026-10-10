@@ -114,6 +114,52 @@ final class UsageQueryTests: XCTestCase {
         XCTAssertEqual(dashboard.daily[1].totalTokens, 0)
     }
 
+    func testConversationFiltersUseStableKeysAndFilteredTotals() throws {
+        let query = UsageQuery(calendar: calendar)
+        let records = [
+            usage("2026-10-10T10:00:00Z", source: .claude, session: "same", model: "opus", input: 3, provider: BillingProvider(rawValue: "anthropic")),
+            usage("2026-10-10T11:00:00Z", source: .claude, session: "same", model: "sonnet", output: 7, provider: BillingProvider(rawValue: "openai")),
+            usage("2026-10-10T12:00:00Z", source: .codex, session: "same", model: "gpt", input: 11, provider: BillingProvider(rawValue: "openai"))
+        ]
+        let snapshot = UsageSnapshot(records: records, titles: [SessionKey(source: .claude, sessionId: "same"): "Build dashboard"])
+
+        var filter = ConversationFilter(period: .allTime, provider: BillingProvider(rawValue: "openai"), sort: .tokens)
+        let conversations = query.conversations(in: filter, from: snapshot, now: now)
+
+        XCTAssertEqual(conversations.map(\.id), [SessionKey(source: .codex, sessionId: "same"), SessionKey(source: .claude, sessionId: "same")])
+        XCTAssertEqual(conversations.map(\.totalTokens), [11, 7])
+        filter.search = "build dashboard"
+        XCTAssertEqual(query.conversations(in: filter, from: snapshot, now: now).map(\.id), [SessionKey(source: .claude, sessionId: "same")])
+    }
+
+    func testConversationDetailSeparatesEventTimelineAndAggregateRows() throws {
+        let query = UsageQuery(calendar: calendar)
+        let event = usage("2026-10-10T10:00:00Z", source: .hermes, session: "detail", input: 3)
+        let aggregate = TokenUsage(timestamp: date("2026-10-10T11:00:00Z"), model: "hermes", inputTokens: 100,
+                                   outputTokens: 20, cacheCreationTokens: 0, cacheReadTokens: 0, sessionId: "detail",
+                                   projectPath: "/tmp/project", source: .hermes, provider: BillingProvider(rawValue: "anthropic"),
+                                   granularity: .lifetimeSessionModelAggregate)
+        let key = SessionKey(source: .hermes, sessionId: "detail")
+        let detail = try XCTUnwrap(query.conversation(for: key, period: .allTime,
+                                                       from: UsageSnapshot(records: [event, aggregate]), now: now))
+
+        XCTAssertEqual(detail.lifetimeTotal, 123)
+        XCTAssertEqual(detail.selectedPeriodTotal, 123)
+        XCTAssertEqual(detail.requestEvents.count, 1)
+        XCTAssertTrue(detail.hasReliableTimeline)
+        XCTAssertEqual(detail.aggregateRows.map(\.totalTokens), [120])
+        XCTAssertEqual(detail.lifetimeBreakdown.reduce(0) { $0 + $1.totalTokens }, detail.lifetimeTotal)
+    }
+
+    func testTokenCountFormatterUsesCompactHumanReadableUnits() {
+        XCTAssertEqual(TokenCountFormatter.string(999), "999")
+        XCTAssertEqual(TokenCountFormatter.string(2_000), "2K")
+        XCTAssertEqual(TokenCountFormatter.string(1_500_000), "1.5M")
+        XCTAssertEqual(TokenCountFormatter.string(2_000_000_000), "2G")
+        XCTAssertEqual(TokenCountFormatter.string(2_000_000_000_000), "2T")
+        XCTAssertEqual(TokenCountFormatter.string(2_000_000_000_000_000), "2P")
+    }
+
     private func usage(_ timestamp: String, source: TokenSource = .claude, session: String, model: String = "model", input: Int = 0, output: Int = 0, cacheCreate: Int = 0, cacheRead: Int = 0, provider: BillingProvider = .unknown) -> TokenUsage {
         TokenUsage(timestamp: date(timestamp), model: model, inputTokens: input, outputTokens: output, cacheCreationTokens: cacheCreate, cacheReadTokens: cacheRead, sessionId: session, projectPath: "/tmp/project", source: source, provider: provider)
     }

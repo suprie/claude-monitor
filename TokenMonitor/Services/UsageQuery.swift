@@ -92,6 +92,81 @@ struct DashboardTokenUsage {
     var hasAggregateOnlyUsage: Bool { !aggregateProviders.isEmpty }
 }
 
+enum ConversationSort: String, CaseIterable, Sendable {
+    case recent = "Recent activity"
+    case tokens = "Token usage"
+}
+
+struct ConversationFilter: Sendable {
+    var period: UsagePeriod = .allTime
+    var search = ""
+    var source: TokenSource?
+    var provider: BillingProvider?
+    var model: String?
+    var sort: ConversationSort = .recent
+}
+
+struct ConversationSummary: Identifiable, Sendable {
+    let key: SessionKey
+    let title: String?
+    let projectPath: String
+    let providers: [BillingProvider]
+    let models: [String]
+    let firstTimestamp: Date
+    let lastTimestamp: Date
+    let totalTokens: Int
+    let inputTokens: Int
+    let outputTokens: Int
+    let cacheCreationTokens: Int
+    let cacheReadTokens: Int
+    let hasRequestEvents: Bool
+    let hasAggregateRows: Bool
+
+    var id: SessionKey { key }
+
+    var displayTitle: String {
+        if let title, !title.isEmpty { return title }
+        let project = projectPath.hasPrefix("/") ? (projectPath as NSString).lastPathComponent : projectPath
+        return project.isEmpty ? key.sessionId : project
+    }
+
+    var sourceQualifiedTitle: String { "\(key.source.displayName) · \(displayTitle)" }
+    var providerLabel: String {
+        providers.count > 1 ? "Multiple providers" : (providers.first?.displayName ?? BillingProvider.unknown.displayName)
+    }
+    var modelLabel: String {
+        models.count > 1 ? "Multiple models" : (models.first.map(ModelInfo.displayName(for:)) ?? "Unknown")
+    }
+}
+
+struct ConversationTokenBreakdown: Identifiable, Sendable {
+    let model: String
+    let provider: BillingProvider
+    let inputTokens: Int
+    let outputTokens: Int
+    let cacheReadTokens: Int
+    let cacheCreationTokens: Int
+    let isAggregate: Bool
+
+    var id: String { "\(provider.rawValue):\(model):\(isAggregate)" }
+    var totalTokens: Int { inputTokens + outputTokens + cacheReadTokens + cacheCreationTokens }
+    var modelLabel: String { ModelInfo.displayName(for: model) }
+}
+
+struct ConversationDetail: Sendable {
+    let summary: ConversationSummary
+    let selectedPeriod: UsagePeriod
+    let selectedPeriodRecords: [TokenUsage]
+    let lifetimeBreakdown: [ConversationTokenBreakdown]
+    let selectedPeriodBreakdown: [ConversationTokenBreakdown]
+
+    var lifetimeTotal: Int { summary.totalTokens }
+    var selectedPeriodTotal: Int { selectedPeriodRecords.reduce(0) { $0 + $1.totalTokens } }
+    var requestEvents: [TokenUsage] { selectedPeriodRecords.filter { $0.granularity == .requestEvent } }
+    var aggregateRows: [ConversationTokenBreakdown] { lifetimeBreakdown.filter(\.isAggregate) }
+    var hasReliableTimeline: Bool { !requestEvents.isEmpty }
+}
+
 struct UsageQuery {
     let calendar: Calendar
 
@@ -164,6 +239,50 @@ struct UsageQuery {
             )
         }
         .sorted { $0.totalTokens > $1.totalTokens }
+    }
+
+    func conversations(in filter: ConversationFilter, from snapshot: UsageSnapshot, now: Date = Date()) -> [ConversationSummary] {
+        let periodRecords = records(in: filter.period, from: snapshot, now: now)
+        let grouped = Dictionary(grouping: periodRecords) { $0.sessionKey }
+
+        return grouped.compactMap { key, records in
+            guard filter.source == nil || filter.source == key.source else { return nil }
+            let matchingRecords = records.filter {
+                (filter.provider == nil || $0.provider == filter.provider) &&
+                (filter.model == nil || $0.model == filter.model)
+            }
+            guard !matchingRecords.isEmpty else { return nil }
+
+            let sorted = matchingRecords.sorted { $0.timestamp < $1.timestamp }
+            let title = snapshot.titles[key]
+            let projectPath = sorted.last(where: { !$0.projectPath.isEmpty })?.projectPath ?? ""
+            let summary = makeSummary(key: key, title: title, records: sorted, projectPath: projectPath)
+            let searchText = "\(summary.displayTitle) \(projectPath) \(key.sessionId) \(key.source.displayName)".lowercased()
+            guard filter.search.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || searchText.contains(filter.search.lowercased()) else { return nil }
+            return summary
+        }
+        .sorted {
+            switch filter.sort {
+            case .recent: return $0.lastTimestamp > $1.lastTimestamp
+            case .tokens: return $0.totalTokens > $1.totalTokens
+            }
+        }
+    }
+
+    func conversation(for key: SessionKey, period: UsagePeriod, from snapshot: UsageSnapshot, now: Date = Date()) -> ConversationDetail? {
+        let lifetime = snapshot.records.filter { $0.sessionKey == key }
+        guard !lifetime.isEmpty else { return nil }
+        let sorted = lifetime.sorted { $0.timestamp < $1.timestamp }
+        let summary = makeSummary(key: key, title: snapshot.titles[key], records: sorted,
+                                  projectPath: sorted.last(where: { !$0.projectPath.isEmpty })?.projectPath ?? "")
+        let periodRecords = records(in: period, from: UsageSnapshot(records: lifetime, titles: snapshot.titles), now: now)
+        return ConversationDetail(
+            summary: summary,
+            selectedPeriod: period,
+            selectedPeriodRecords: periodRecords,
+            lifetimeBreakdown: breakdown(sorted),
+            selectedPeriodBreakdown: breakdown(periodRecords)
+        )
     }
 
     func daily(in period: UsagePeriod, from snapshot: UsageSnapshot, now: Date = Date()) -> [DailyTokenUsage] {
@@ -285,6 +404,42 @@ struct UsageQuery {
                 inputTokens: value.input, outputTokens: value.output,
                 cacheCreationTokens: value.create, cacheReadTokens: value.read
             )
+        }.sorted { $0.totalTokens > $1.totalTokens }
+    }
+
+    private func makeSummary(key: SessionKey, title: String?, records: [TokenUsage], projectPath: String) -> ConversationSummary {
+        ConversationSummary(
+            key: key, title: title, projectPath: projectPath,
+            providers: records.map(\.provider).removingDuplicates().sorted { $0.rawValue < $1.rawValue },
+            models: records.map(\.model).removingDuplicates().sorted(),
+            firstTimestamp: records.map(\.timestamp).min() ?? .distantPast,
+            lastTimestamp: records.map(\.timestamp).max() ?? .distantPast,
+            totalTokens: records.reduce(0) { $0 + $1.totalTokens },
+            inputTokens: records.reduce(0) { $0 + $1.inputTokens },
+            outputTokens: records.reduce(0) { $0 + $1.outputTokens },
+            cacheCreationTokens: records.reduce(0) { $0 + $1.cacheCreationTokens },
+            cacheReadTokens: records.reduce(0) { $0 + $1.cacheReadTokens },
+            hasRequestEvents: records.contains { $0.granularity == .requestEvent },
+            hasAggregateRows: records.contains { $0.granularity == .lifetimeSessionModelAggregate }
+        )
+    }
+
+    private func breakdown(_ records: [TokenUsage]) -> [ConversationTokenBreakdown] {
+        struct Key: Hashable { let model: String; let provider: BillingProvider; let isAggregate: Bool }
+        struct Totals { var input = 0; var output = 0; var read = 0; var create = 0 }
+        var values: [Key: Totals] = [:]
+        for record in records {
+            let key = Key(model: record.model, provider: record.provider, isAggregate: record.granularity == .lifetimeSessionModelAggregate)
+            var total = values[key, default: Totals()]
+            total.input += record.inputTokens; total.output += record.outputTokens
+            total.read += record.cacheReadTokens; total.create += record.cacheCreationTokens
+            values[key] = total
+        }
+        return values.map { key, value in
+            ConversationTokenBreakdown(model: key.model, provider: key.provider,
+                                       inputTokens: value.input, outputTokens: value.output,
+                                       cacheReadTokens: value.read, cacheCreationTokens: value.create,
+                                       isAggregate: key.isAggregate)
         }.sorted { $0.totalTokens > $1.totalTokens }
     }
 }

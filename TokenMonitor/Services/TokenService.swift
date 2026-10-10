@@ -17,10 +17,18 @@ final class TokenService: ObservableObject {
     private var refreshTask: Task<Void, Never>?
     private var refreshRequested = false
 
-    var todayTokensFormatted: String { formatTokenCount(stats.daily) }
+    var todayTokensFormatted: String { TokenCountFormatter.string(stats.daily) }
 
     func dashboard(for period: UsagePeriod, provider: BillingProvider? = nil, now: Date = Date()) -> DashboardTokenUsage {
         query.dashboard(in: period, from: snapshot, provider: provider, now: now)
+    }
+
+    func conversations(in filter: ConversationFilter, now: Date = Date()) -> [ConversationSummary] {
+        query.conversations(in: filter, from: snapshot, now: now)
+    }
+
+    func conversation(for key: SessionKey, period: UsagePeriod, now: Date = Date()) -> ConversationDetail? {
+        query.conversation(for: key, period: period, from: snapshot, now: now)
     }
 
     init(parsers: [TokenUsageParser] = [TokenParser(), ZCodeTokenParser(), HermesTokenParser(), CodexTokenParser(), DeepSeekHarnessTokenParser()], calendar: Calendar = .current) {
@@ -136,12 +144,6 @@ final class TokenService: ObservableObject {
         refreshTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in await self?.refresh() }
         }
-    }
-
-    private func formatTokenCount(_ count: Int) -> String {
-        if count >= 1_000_000 { return String(format: "%.1fM", Double(count) / 1_000_000) }
-        if count >= 1_000 { return String(format: "%.1fK", Double(count) / 1_000) }
-        return "\(count)"
     }
 
     isolated deinit { refreshTimer?.invalidate(); refreshTask?.cancel() }
