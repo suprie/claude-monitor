@@ -58,8 +58,21 @@ final class UsageQueryTests: XCTestCase {
         XCTAssertEqual(query.total(in: .allTime, from: UsageSnapshot(records: [record]), now: now), 17)
     }
 
-    private func usage(_ timestamp: String, source: TokenSource = .claude, session: String, model: String = "model", input: Int = 0, output: Int = 0, cacheCreate: Int = 0, cacheRead: Int = 0) -> TokenUsage {
-        TokenUsage(timestamp: date(timestamp), model: model, inputTokens: input, outputTokens: output, cacheCreationTokens: cacheCreate, cacheReadTokens: cacheRead, sessionId: session, projectPath: "/tmp/project", source: source)
+    func testProviderTotalsIncludeUnknownAndReconcileToNormalizedTotal() {
+        let query = UsageQuery(calendar: calendar)
+        let records = [
+            usage("2026-10-10T10:00:00Z", session: "known", input: 3, provider: BillingProvider(rawValue: "openai")),
+            usage("2026-10-10T11:00:00Z", session: "unknown", output: 7)
+        ]
+
+        let totals = query.providers(in: .allTime, from: UsageSnapshot(records: records), now: now)
+
+        XCTAssertEqual(totals.map(\.provider), [BillingProvider.unknown, BillingProvider(rawValue: "openai")])
+        XCTAssertEqual(totals.reduce(0) { $0 + $1.totalTokens }, query.total(in: .allTime, from: UsageSnapshot(records: records), now: now))
+    }
+
+    private func usage(_ timestamp: String, source: TokenSource = .claude, session: String, model: String = "model", input: Int = 0, output: Int = 0, cacheCreate: Int = 0, cacheRead: Int = 0, provider: BillingProvider = .unknown) -> TokenUsage {
+        TokenUsage(timestamp: date(timestamp), model: model, inputTokens: input, outputTokens: output, cacheCreationTokens: cacheCreate, cacheReadTokens: cacheRead, sessionId: session, projectPath: "/tmp/project", source: source, provider: provider)
     }
 
     private func date(_ value: String) -> Date {

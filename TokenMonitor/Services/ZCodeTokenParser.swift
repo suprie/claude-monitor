@@ -15,8 +15,8 @@ import SQLite3
 actor ZCodeTokenParser: TokenUsageParser {
     private let dbPath: String
 
-    init() {
-        self.dbPath = NSHomeDirectory() + "/.zcode/cli/db/db.sqlite"
+    init(dbPath: String = NSHomeDirectory() + "/.zcode/cli/db/db.sqlite") {
+        self.dbPath = dbPath
     }
 
     func parseAllTokenUsage() async -> [TokenUsage] {
@@ -147,7 +147,9 @@ actor ZCodeTokenParser: TokenUsageParser {
 
             // Model id is the most specific identifier available; fall back to
             // the provider id if the row lacks one.
-            let modelId = textColumn(stmt, 3) ?? textColumn(stmt, 2) ?? "unknown"
+            let providerRawValue = textColumn(stmt, 2)
+            let provider = BillingProvider(rawValue: providerRawValue)
+            let modelId = textColumn(stmt, 3) ?? "unknown"
 
             let inputTokens = intColumn(stmt, 4)
             let outputTokens = intColumn(stmt, 5)
@@ -168,7 +170,11 @@ actor ZCodeTokenParser: TokenUsageParser {
                 cacheReadTokens: cacheRead,
                 sessionId: sessionId,
                 projectPath: projectPath,
-                source: .zcode
+                source: .zcode,
+                provider: provider,
+                providerRawValue: providerRawValue,
+                providerProvenance: providerRawValue == nil ? .unavailable : .sourceMetadata,
+                granularity: .requestEvent
             ))
         }
     }

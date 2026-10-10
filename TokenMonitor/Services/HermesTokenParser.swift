@@ -15,8 +15,8 @@ import SQLite3
 actor HermesTokenParser: TokenUsageParser {
     private let dbPath: String
 
-    init() {
-        self.dbPath = NSHomeDirectory() + "/.hermes/state.db"
+    init(dbPath: String = NSHomeDirectory() + "/.hermes/state.db") {
+        self.dbPath = dbPath
     }
 
     func parseAllTokenUsage() async -> [TokenUsage] {
@@ -94,7 +94,7 @@ actor HermesTokenParser: TokenUsageParser {
         // Hermes has no per-request status column; every row is a finalized
         // aggregate, so no `WHERE status = ...` filter is needed.
         let sql = """
-            SELECT session_id, model, input_tokens, output_tokens,
+            SELECT session_id, model, billing_provider, input_tokens, output_tokens,
                    cache_read_tokens, cache_write_tokens, reasoning_tokens,
                    last_seen
             FROM session_model_usage;
@@ -111,16 +111,18 @@ actor HermesTokenParser: TokenUsageParser {
             let sessionId = String(cString: sessionIdC)
 
             let model = textColumn(stmt, 1) ?? "unknown"
+            let providerRawValue = textColumn(stmt, 2)
+            let provider = BillingProvider(rawValue: providerRawValue)
 
-            let inputTokens = intColumn(stmt, 2)
-            let outputTokens = intColumn(stmt, 3)
-            let cacheRead = intColumn(stmt, 4)
-            let cacheWrite = intColumn(stmt, 5)
-            let reasoningTokens = intColumn(stmt, 6)
+            let inputTokens = intColumn(stmt, 3)
+            let outputTokens = intColumn(stmt, 4)
+            let cacheRead = intColumn(stmt, 5)
+            let cacheWrite = intColumn(stmt, 6)
+            let reasoningTokens = intColumn(stmt, 7)
 
             // `last_seen` is epoch seconds (Hermes), not milliseconds — unlike
             // ZCode. Use the most recent activity as the row's timestamp.
-            let lastSeen = sqlite3_column_double(stmt, 7)
+            let lastSeen = sqlite3_column_double(stmt, 8)
             let timestamp = Date(timeIntervalSince1970: lastSeen)
 
             // Reasoning tokens are billed as output, so fold them in to keep
@@ -136,7 +138,11 @@ actor HermesTokenParser: TokenUsageParser {
                 cacheReadTokens: cacheRead,
                 sessionId: sessionId,
                 projectPath: projectPath,
-                source: .hermes
+                source: .hermes,
+                provider: provider,
+                providerRawValue: providerRawValue,
+                providerProvenance: providerRawValue == nil ? .unavailable : .sourceMetadata,
+                granularity: .lifetimeSessionModelAggregate
             ))
         }
     }

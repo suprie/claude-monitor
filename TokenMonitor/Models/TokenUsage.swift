@@ -29,6 +29,41 @@ enum TokenSource: String, Codable, CaseIterable, Sendable {
     }
 }
 
+/// The billing route for a usage record, independent of the recording app.
+struct BillingProvider: Hashable, Codable, Sendable, Identifiable {
+    let rawValue: String
+
+    static let unknown = BillingProvider(rawValue: "unknown")
+
+    init(rawValue: String) {
+        let normalized = rawValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.rawValue = normalized.isEmpty ? Self.unknown.rawValue : normalized
+    }
+
+    init(rawValue: String?) {
+        self.init(rawValue: rawValue ?? Self.unknown.rawValue)
+    }
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        guard self != .unknown else { return "Unknown" }
+        return rawValue.replacingOccurrences(of: "_", with: " ")
+            .replacingOccurrences(of: "-", with: " ").capitalized
+    }
+}
+
+enum ProviderMetadataProvenance: String, Codable, Sendable {
+    case sourceMetadata
+    case sourceConfiguration
+    case unavailable
+}
+
+enum TokenDataGranularity: String, Codable, Sendable {
+    case requestEvent
+    case lifetimeSessionModelAggregate
+}
+
 struct SessionKey: Hashable, Codable, Identifiable, Sendable, CustomStringConvertible {
     let source: TokenSource
     let sessionId: String
@@ -47,6 +82,34 @@ struct TokenUsage: Codable, Identifiable, Sendable {
     let sessionId: String
     let projectPath: String
     let source: TokenSource
+    let provider: BillingProvider
+    /// The provider identifier exactly as supplied by the source, when one exists.
+    let providerRawValue: String?
+    let providerProvenance: ProviderMetadataProvenance
+    let granularity: TokenDataGranularity
+
+    init(
+        timestamp: Date, model: String, inputTokens: Int, outputTokens: Int,
+        cacheCreationTokens: Int, cacheReadTokens: Int, sessionId: String,
+        projectPath: String, source: TokenSource, provider: BillingProvider = .unknown,
+        providerRawValue: String? = nil,
+        providerProvenance: ProviderMetadataProvenance = .unavailable,
+        granularity: TokenDataGranularity = .requestEvent
+    ) {
+        self.timestamp = timestamp
+        self.model = model
+        self.inputTokens = inputTokens
+        self.outputTokens = outputTokens
+        self.cacheCreationTokens = cacheCreationTokens
+        self.cacheReadTokens = cacheReadTokens
+        self.sessionId = sessionId
+        self.projectPath = projectPath
+        self.source = source
+        self.provider = provider
+        self.providerRawValue = providerRawValue
+        self.providerProvenance = providerProvenance
+        self.granularity = granularity
+    }
 
     /// Stable identity for a source event. UUIDs would change on every refresh.
     var id: String {
@@ -75,12 +138,34 @@ struct TokenUsage: Codable, Identifiable, Sendable {
         case sessionId
         case projectPath
         case source
+        case provider
+        case providerRawValue
+        case providerProvenance
+        case granularity
+    }
+
+    init(from decoder: Decoder) throws {
+        let values = try decoder.container(keyedBy: CodingKeys.self)
+        timestamp = try values.decode(Date.self, forKey: .timestamp)
+        model = try values.decode(String.self, forKey: .model)
+        inputTokens = try values.decode(Int.self, forKey: .inputTokens)
+        outputTokens = try values.decode(Int.self, forKey: .outputTokens)
+        cacheCreationTokens = try values.decode(Int.self, forKey: .cacheCreationTokens)
+        cacheReadTokens = try values.decode(Int.self, forKey: .cacheReadTokens)
+        sessionId = try values.decode(String.self, forKey: .sessionId)
+        projectPath = try values.decode(String.self, forKey: .projectPath)
+        source = try values.decode(TokenSource.self, forKey: .source)
+        provider = try values.decodeIfPresent(BillingProvider.self, forKey: .provider) ?? .unknown
+        providerRawValue = try values.decodeIfPresent(String.self, forKey: .providerRawValue)
+        providerProvenance = try values.decodeIfPresent(ProviderMetadataProvenance.self, forKey: .providerProvenance) ?? .unavailable
+        granularity = try values.decodeIfPresent(TokenDataGranularity.self, forKey: .granularity) ?? .requestEvent
     }
 }
 
 struct ModelTokenUsage: Identifiable {
     let model: String
     let source: TokenSource
+    let provider: BillingProvider
     let inputTokens: Int
     let outputTokens: Int
     let cacheCreationTokens: Int
@@ -96,7 +181,7 @@ struct ModelTokenUsage: Identifiable {
 
     /// Stable identity for charts and model-based navigation.
     var chartID: String {
-        "\(source.rawValue):\(model)"
+        "\(source.rawValue):\(provider.rawValue):\(model)"
     }
 
     var id: String { chartID }
@@ -108,6 +193,7 @@ struct SessionTokenUsage: Identifiable {
     let projectPath: String
     let model: String
     let source: TokenSource
+    let providers: [BillingProvider]
     let firstTimestamp: Date
     let lastTimestamp: Date
     let inputTokens: Int

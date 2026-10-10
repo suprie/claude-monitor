@@ -37,6 +37,17 @@ struct UsageSnapshot: Sendable {
     }
 }
 
+struct ProviderTokenUsage: Identifiable {
+    let provider: BillingProvider
+    let inputTokens: Int
+    let outputTokens: Int
+    let cacheCreationTokens: Int
+    let cacheReadTokens: Int
+
+    var id: String { provider.id }
+    var totalTokens: Int { inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens }
+}
+
 struct UsageQuery {
     let calendar: Calendar
 
@@ -57,6 +68,23 @@ struct UsageQuery {
         aggregateModels(records(in: period, from: snapshot, now: now))
     }
 
+    func providers(in period: UsagePeriod, from snapshot: UsageSnapshot, now: Date = Date()) -> [ProviderTokenUsage] {
+        struct Totals { var input = 0; var output = 0; var create = 0; var read = 0 }
+        var totals: [BillingProvider: Totals] = [:]
+        for record in records(in: period, from: snapshot, now: now) {
+            var value = totals[record.provider, default: Totals()]
+            value.input += record.inputTokens
+            value.output += record.outputTokens
+            value.create += record.cacheCreationTokens
+            value.read += record.cacheReadTokens
+            totals[record.provider] = value
+        }
+        return totals.map { provider, value in
+            ProviderTokenUsage(provider: provider, inputTokens: value.input, outputTokens: value.output,
+                               cacheCreationTokens: value.create, cacheReadTokens: value.read)
+        }.sorted { $0.totalTokens > $1.totalTokens }
+    }
+
     func sessions(in period: UsagePeriod, from snapshot: UsageSnapshot, now: Date = Date()) -> [SessionTokenUsage] {
         var grouped: [SessionKey: [TokenUsage]] = [:]
         for record in records(in: period, from: snapshot, now: now) {
@@ -72,6 +100,7 @@ struct UsageQuery {
                 projectPath: sorted.last(where: { !$0.projectPath.isEmpty })?.projectPath ?? first.projectPath,
                 model: sorted.map(\.model).removingDuplicates().joined(separator: ", "),
                 source: key.source,
+                providers: records.map(\.provider).removingDuplicates().sorted { $0.rawValue < $1.rawValue },
                 firstTimestamp: sorted.map(\.timestamp).min()!,
                 lastTimestamp: sorted.map(\.timestamp).max()!,
                 inputTokens: records.reduce(0) { $0 + $1.inputTokens },
@@ -107,9 +136,10 @@ struct UsageQuery {
 
     private func aggregateModels(_ records: [TokenUsage]) -> [ModelTokenUsage] {
         struct Totals { var input = 0; var output = 0; var create = 0; var read = 0 }
-        var totals: [String: Totals] = [:]
+        struct ModelKey: Hashable { let source: TokenSource; let provider: BillingProvider; let model: String }
+        var totals: [ModelKey: Totals] = [:]
         for record in records {
-            let key = "\(record.source.rawValue):\(record.model)"
+            let key = ModelKey(source: record.source, provider: record.provider, model: record.model)
             var value = totals[key, default: Totals()]
             value.input += record.inputTokens
             value.output += record.outputTokens
@@ -118,9 +148,8 @@ struct UsageQuery {
             totals[key] = value
         }
         return totals.map { key, value in
-            let parts = key.split(separator: ":", maxSplits: 1).map(String.init)
             return ModelTokenUsage(
-                model: parts[1], source: TokenSource(rawValue: parts[0])!,
+                model: key.model, source: key.source, provider: key.provider,
                 inputTokens: value.input, outputTokens: value.output,
                 cacheCreationTokens: value.create, cacheReadTokens: value.read
             )
