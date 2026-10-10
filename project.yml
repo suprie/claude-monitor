@@ -13,6 +13,7 @@ settings:
     SWIFT_VERSION: "5.9"
     MACOSX_DEPLOYMENT_TARGET: "14.0"
     GENERATE_INFOPLIST_FILE: NO
+    INFOPLIST_FILE: TakarPakai/Info.plist
 
 targets:
   TakarPakai:
@@ -31,6 +32,7 @@ targets:
         DEVELOPMENT_TEAM: "SBTY5UG75A"
         ENABLE_HARDENED_RUNTIME: YES
         COMBINE_HIDPI_IMAGES: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
         LD_RUNPATH_SEARCH_PATHS:
           - "@executable_path/../Frameworks"
 
