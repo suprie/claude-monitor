@@ -3,22 +3,54 @@ import SwiftUI
 
 struct HomeView: View {
     @EnvironmentObject private var tokenService: TokenService
+    @State private var selectedPeriod: UsagePeriod = .thisWeek
+    @State private var selectedProviderID = "all"
+    @State private var selectedDay: Date?
 
     var body: some View {
+        let allDashboard = tokenService.dashboard(for: selectedPeriod)
+        let selectedProvider = selectedProviderID == "all" ? nil : BillingProvider(rawValue: selectedProviderID)
+        let dashboard = tokenService.dashboard(for: selectedPeriod, provider: selectedProvider)
+        let providers = allDashboard.providers.map(\.provider) + allDashboard.aggregateProviders.map(\.provider)
+        let availableProviders = Array(Set(providers)).sorted { $0.displayName < $1.displayName }
+
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 HomeHeader(lastUpdated: tokenService.lastUpdated, isLoading: tokenService.isLoading, cacheError: tokenService.cacheError)
-                UsageSummarySection(
-                    daily: tokenService.stats.daily,
-                    weekly: tokenService.stats.weekly,
-                    monthly: tokenService.stats.monthly
+                DashboardControls(
+                    period: $selectedPeriod,
+                    providerID: $selectedProviderID,
+                    providers: availableProviders
                 )
-                ModelUsageOverviewSection(
-                    daily: tokenService.stats.dailyModelBreakdown,
-                    weekly: tokenService.stats.weeklyModelBreakdown,
-                    monthly: tokenService.stats.monthlyModelBreakdown
-                )
-                RecentUsageSection(sessions: tokenService.stats.weeklySessionBreakdown)
+
+                if tokenService.isLoading && tokenService.snapshot.records.isEmpty {
+                    DashboardLoadingState()
+                } else if !dashboard.hasDatedHistory && !dashboard.hasAggregateOnlyUsage {
+                    DashboardEmptyState()
+                } else {
+                    DashboardTokenCards(dashboard: dashboard)
+                    DailyProviderChart(
+                        data: dashboard.daily,
+                        providers: availableProviders,
+                        selectedDay: $selectedDay,
+                        calendar: Calendar.current
+                    )
+                    ProviderTotalsSection(
+                        providers: dashboard.providers,
+                        aggregateProviders: dashboard.aggregateProviders
+                    )
+                    if let selectedDay {
+                        SelectedDaySection(
+                            date: selectedDay,
+                            data: dashboard.daily,
+                            calendar: Calendar.current
+                        )
+                    }
+                }
+
+                if hasPartialData(statuses: tokenService.sourceStatuses) {
+                    DashboardDataNotice(statuses: tokenService.sourceStatuses)
+                }
                 SourceHealthSection(statuses: tokenService.sourceStatuses)
             }
             .padding(28)
@@ -34,6 +66,294 @@ struct HomeView: View {
                 .disabled(tokenService.isLoading)
             }
         }
+    }
+
+    private func hasPartialData(statuses: [SourceSyncStatus]) -> Bool {
+        statuses.contains { $0.status != .succeeded && $0.lastSuccessfulRefresh != nil }
+    }
+}
+
+struct DashboardControls: View {
+    @Binding var period: UsagePeriod
+    @Binding var providerID: String
+    let providers: [BillingProvider]
+
+    var body: some View {
+        HStack {
+            Picker("Period", selection: $period) {
+                ForEach(UsagePeriod.allCases, id: \.self) { value in
+                    Text(value.rawValue).tag(value)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(maxWidth: 430)
+
+            Spacer()
+
+            Picker("Provider", selection: $providerID) {
+                Text("All providers").tag("all")
+                ForEach(providers) { provider in
+                    Text(provider.displayName).tag(provider.id)
+                }
+            }
+            .frame(width: 180)
+        }
+    }
+}
+
+struct DashboardLoadingState: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+            Text("Loading local usage history…")
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 260)
+    }
+}
+
+struct DashboardEmptyState: View {
+    var body: some View {
+        ContentUnavailableView(
+            "No usage history",
+            systemImage: "chart.bar.xaxis",
+            description: Text("No dated token events or lifetime aggregate usage are available for this installation yet.")
+        )
+        .frame(maxWidth: .infinity, minHeight: 260)
+    }
+}
+
+struct DashboardTokenCards: View {
+    let dashboard: DashboardTokenUsage
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 12)], spacing: 12) {
+            DashboardTokenCard(title: "Total", value: dashboard.totalTokens, color: .blue)
+            DashboardTokenCard(title: "Input", value: dashboard.inputTokens, color: .indigo)
+            DashboardTokenCard(title: "Output", value: dashboard.outputTokens, color: .orange)
+            DashboardTokenCard(title: "Cache", value: dashboard.cacheCreationTokens + dashboard.cacheReadTokens, color: .mint)
+        }
+    }
+}
+
+struct DashboardTokenCard: View {
+    let title: String
+    let value: Int
+    let color: Color
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.headline)
+                .foregroundStyle(.secondary)
+            Text(value, format: .number)
+                .font(.system(.title2, design: .rounded).weight(.semibold))
+                .monospacedDigit()
+                .contentTransition(.numericText())
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(16)
+        .background(color.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+struct DailyProviderChart: View {
+    let data: [DailyProviderTokenUsage]
+    let providers: [BillingProvider]
+    @Binding var selectedDay: Date?
+    let calendar: Calendar
+
+    var body: some View {
+        DashboardPanel(title: "Daily usage", systemImage: "chart.bar.xaxis") {
+            if data.isEmpty {
+                Text("No dated request history is available for this period.")
+                    .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 220)
+            } else {
+                Chart(data) { item in
+                    BarMark(
+                        x: .value("Day", item.date, unit: .day),
+                        y: .value("Tokens", item.totalTokens)
+                    )
+                    .foregroundStyle(by: .value("Provider", item.provider.displayName))
+                }
+                .chartForegroundStyleScale(
+                    domain: providers.map(\.displayName),
+                    range: providers.map { ProviderChartStyle.color(for: $0) }
+                )
+                .chartLegend(.hidden)
+                .chartXAxis {
+                    AxisMarks(values: .automatic(desiredCount: 7)) { value in
+                        AxisGridLine()
+                        AxisValueLabel(format: .dateTime.month(.abbreviated).day())
+                    }
+                }
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisGridLine()
+                        AxisValueLabel()
+                    }
+                }
+                .chartXSelection(value: $selectedDay)
+                .frame(minHeight: 250)
+
+                ProviderLegend(providers: providers)
+            }
+        }
+    }
+}
+
+struct ProviderLegend: View {
+    let providers: [BillingProvider]
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.adaptive(minimum: 140), alignment: .leading)], alignment: .leading, spacing: 8) {
+            ForEach(providers) { provider in
+                Label(provider.displayName, systemImage: "circle.fill")
+                    .foregroundStyle(ProviderChartStyle.color(for: provider))
+                    .font(.caption)
+            }
+        }
+    }
+}
+
+struct ProviderTotalsSection: View {
+    let providers: [ProviderTokenUsage]
+    let aggregateProviders: [AggregateProviderTokenUsage]
+
+    var body: some View {
+        DashboardPanel(title: "Provider totals", systemImage: "square.stack.3d.up") {
+            if providers.isEmpty {
+                Text("No dated provider totals are available for this period.")
+                    .foregroundStyle(.secondary)
+            } else {
+                VStack(spacing: 0) {
+                    ProviderTableHeader()
+                    ForEach(providers) { provider in
+                        ProviderTableRow(provider: provider)
+                    }
+                }
+            }
+
+            if !aggregateProviders.isEmpty {
+                Divider().padding(.vertical, 12)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Lifetime aggregate-only usage")
+                        .font(.headline)
+                    Text("These sources provide totals but no dated request history, so they are not placed on the graph or attributed to last seen.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    ForEach(aggregateProviders) { aggregate in
+                        HStack {
+                            Circle().fill(ProviderChartStyle.color(for: aggregate.provider)).frame(width: 8, height: 8)
+                            Text("\(aggregate.provider.displayName) · \(aggregate.source.displayName)")
+                            Spacer()
+                            Text(aggregate.totalTokens, format: .number).monospacedDigit()
+                        }
+                        .font(.subheadline)
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct ProviderTableHeader: View {
+    var body: some View {
+        HStack {
+            Text("Provider")
+            Spacer()
+            Text("Input").frame(width: 90, alignment: .trailing)
+            Text("Output").frame(width: 90, alignment: .trailing)
+            Text("Cache").frame(width: 90, alignment: .trailing)
+            Text("Total").frame(width: 100, alignment: .trailing)
+        }
+        .font(.caption.weight(.semibold))
+        .foregroundStyle(.secondary)
+        .padding(.bottom, 8)
+    }
+}
+
+struct ProviderTableRow: View {
+    let provider: ProviderTokenUsage
+
+    var body: some View {
+        HStack {
+            Label(provider.provider.displayName, systemImage: "circle.fill")
+                .foregroundStyle(ProviderChartStyle.color(for: provider.provider))
+            Spacer()
+            Text(provider.inputTokens, format: .number).frame(width: 90, alignment: .trailing)
+            Text(provider.outputTokens, format: .number).frame(width: 90, alignment: .trailing)
+            Text(provider.cacheCreationTokens + provider.cacheReadTokens, format: .number).frame(width: 90, alignment: .trailing)
+            Text(provider.totalTokens, format: .number).frame(width: 100, alignment: .trailing).bold()
+        }
+        .font(.subheadline)
+        .padding(.vertical, 6)
+    }
+}
+
+struct SelectedDaySection: View {
+    let date: Date
+    let data: [DailyProviderTokenUsage]
+    let calendar: Calendar
+
+    var body: some View {
+        let day = calendar.startOfDay(for: date)
+        let rows = data.filter { calendar.isDate($0.date, inSameDayAs: day) }.sorted { $0.totalTokens > $1.totalTokens }
+
+        DashboardPanel(title: "Selected day · \(day.formatted(.dateTime.month().day().year()))", systemImage: "calendar") {
+            if rows.isEmpty {
+                Text("No dated usage on this day.")
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(rows) { row in
+                    HStack {
+                        Label(row.provider.displayName, systemImage: "circle.fill")
+                            .foregroundStyle(ProviderChartStyle.color(for: row.provider))
+                        Spacer()
+                        Text("Input \(row.inputTokens, format: .number) · Output \(row.outputTokens, format: .number) · Cache \(row.cacheCreationTokens + row.cacheReadTokens, format: .number)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Text(row.totalTokens, format: .number).monospacedDigit().bold()
+                    }
+                }
+            }
+        }
+    }
+}
+
+struct DashboardDataNotice: View {
+    let statuses: [SourceSyncStatus]
+
+    var body: some View {
+        let affected = statuses.filter { $0.status != .succeeded }.map { $0.source.displayName }.joined(separator: ", ")
+        Label("Some sources are unavailable (\(affected)); showing their last-known data where available.", systemImage: "exclamationmark.triangle")
+            .font(.caption)
+            .foregroundStyle(.orange)
+    }
+}
+
+struct DashboardPanel<Content: View>: View {
+    let title: String
+    let systemImage: String
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            Label(title, systemImage: systemImage)
+                .font(.title2.weight(.semibold))
+            content
+        }
+        .padding(20)
+        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+    }
+}
+
+enum ProviderChartStyle {
+    static func color(for provider: BillingProvider) -> Color {
+        let palette: [Color] = [.blue, .purple, .orange, .green, .teal, .pink, .indigo, .mint]
+        let hash = provider.id.utf8.reduce(0) { ($0 &* 31) &+ Int($1) }
+        return palette[abs(hash) % palette.count]
     }
 }
 

@@ -71,6 +71,49 @@ final class UsageQueryTests: XCTestCase {
         XCTAssertEqual(totals.reduce(0) { $0 + $1.totalTokens }, query.total(in: .allTime, from: UsageSnapshot(records: records), now: now))
     }
 
+    func testDashboardKeepsAggregateOnlyUsageOffTheDatedGraph() throws {
+        let query = UsageQuery(calendar: calendar)
+        let event = usage("2026-10-10T10:00:00Z", session: "event", input: 3, provider: BillingProvider(rawValue: "openai"))
+        let aggregate = TokenUsage(
+            timestamp: date("2026-10-10T11:00:00Z"), model: "hermes-model", inputTokens: 100,
+            outputTokens: 20, cacheCreationTokens: 0, cacheReadTokens: 0, sessionId: "aggregate",
+            projectPath: "/tmp/project", source: .hermes, provider: BillingProvider(rawValue: "anthropic"),
+            granularity: .lifetimeSessionModelAggregate
+        )
+        let snapshot = UsageSnapshot(records: [event, aggregate])
+
+        XCTAssertEqual(query.total(in: .today, from: snapshot, now: now), 3)
+        let dashboard = query.dashboard(in: .today, from: snapshot, now: now)
+        XCTAssertEqual(dashboard.totalTokens, 3)
+        XCTAssertEqual(dashboard.aggregateTotalTokens, 120)
+        XCTAssertEqual(dashboard.daily.reduce(0) { $0 + $1.totalTokens }, 3)
+        XCTAssertEqual(dashboard.aggregateProviders.first?.provider, BillingProvider(rawValue: "anthropic"))
+    }
+
+    func testDashboardFillsMissingDaysWithZeroProviderBuckets() {
+        let query = UsageQuery(calendar: calendar)
+        let records = [
+            usage("2026-10-10T10:00:00Z", session: "first", input: 3, provider: BillingProvider(rawValue: "openai"))
+        ]
+        let dashboard = query.dashboard(in: .thisWeek, from: UsageSnapshot(records: records), now: now)
+
+        XCTAssertEqual(dashboard.daily.count, 7)
+        XCTAssertEqual(dashboard.daily.filter { $0.totalTokens == 0 }.count, 6)
+        XCTAssertEqual(dashboard.daily.reduce(0) { $0 + $1.totalTokens }, 3)
+    }
+
+    func testAllTimeDashboardUsesOnlyTheDatedHistoryRange() {
+        let query = UsageQuery(calendar: calendar)
+        let records = [
+            usage("2026-10-01T10:00:00Z", session: "first", input: 3),
+            usage("2026-10-03T10:00:00Z", session: "last", output: 7)
+        ]
+        let dashboard = query.dashboard(in: .allTime, from: UsageSnapshot(records: records), now: now)
+
+        XCTAssertEqual(dashboard.daily.count, 3)
+        XCTAssertEqual(dashboard.daily[1].totalTokens, 0)
+    }
+
     private func usage(_ timestamp: String, source: TokenSource = .claude, session: String, model: String = "model", input: Int = 0, output: Int = 0, cacheCreate: Int = 0, cacheRead: Int = 0, provider: BillingProvider = .unknown) -> TokenUsage {
         TokenUsage(timestamp: date(timestamp), model: model, inputTokens: input, outputTokens: output, cacheCreationTokens: cacheCreate, cacheReadTokens: cacheRead, sessionId: session, projectPath: "/tmp/project", source: source, provider: provider)
     }

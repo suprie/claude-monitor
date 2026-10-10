@@ -19,6 +19,10 @@ final class TokenService: ObservableObject {
 
     var todayTokensFormatted: String { formatTokenCount(stats.daily) }
 
+    func dashboard(for period: UsagePeriod, provider: BillingProvider? = nil, now: Date = Date()) -> DashboardTokenUsage {
+        query.dashboard(in: period, from: snapshot, provider: provider, now: now)
+    }
+
     init(parsers: [TokenUsageParser] = [TokenParser(), ZCodeTokenParser(), HermesTokenParser(), CodexTokenParser()], calendar: Calendar = .current) {
         self.parsers = parsers
         self.query = UsageQuery(calendar: calendar)
