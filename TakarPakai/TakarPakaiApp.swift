@@ -43,6 +43,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
+
+        // WindowGroup creates its window after the app delegate callback.
+        // Resize it on the next run-loop turn so the main window opens using
+        // the full usable screen area instead of the SwiftUI default size.
+        DispatchQueue.main.async { [weak self] in
+            self?.fillMainWindow()
+        }
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -54,5 +61,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         return true
+    }
+
+    private func fillMainWindow() {
+        guard let window = NSApp.windows.first(where: { $0.title == "Takar Pakai" }),
+              let screen = window.screen ?? NSScreen.main else { return }
+
+        window.setFrame(screen.visibleFrame, display: true, animate: false)
     }
 }

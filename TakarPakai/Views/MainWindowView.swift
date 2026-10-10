@@ -275,6 +275,10 @@ struct ConversationBreakdownPanel: View {
         }
         .padding(18)
         .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 12))
+        // The detail view is hosted in a flexible split-view column. Keep
+        // this panel at its content height so rows are not pushed to the
+        // bottom of a tall, apparently empty card.
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
 

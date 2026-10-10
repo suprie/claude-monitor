@@ -89,38 +89,62 @@ final class TokenService: ObservableObject {
     private func refreshOnce() async {
         isLoading = true
         defer { isLoading = false }
-        let results = await Self.collectSourceResults(from: parsers)
-
-        if let repository {
-            for result in results {
-                do { try await repository.importSource(result) }
-                catch { try? await repository.importSource(.failed(source: result.source, error: error)) }
+        // Publish each source as soon as its actor finishes. A slow JSONL
+        // source no longer blocks faster SQLite sources from appearing.
+        await withTaskGroup(of: SourceImportResult.self) { group in
+            for parser in parsers { group.addTask { await parser.parseSource() } }
+            for await result in group {
+                await importAndApply(result)
             }
-            if let cached = try? await repository.load() { apply(cached) }
-        } else {
-            let successful = results.filter { $0.status == .succeeded }
-            let records = successful.flatMap(\.records)
-            let titles = successful.reduce(into: [SessionKey: String]()) { result, source in
-                result.merge(source.titles) { _, new in new }
-            }
-            let newSnapshot = UsageSnapshot(records: records, titles: titles, lastSuccessfulRefresh: successful.map(\.completedAt).max())
-            let statuses = results.map { result in
-                SourceSyncStatus(source: result.source, status: result.status,
-                                 lastSuccessfulRefresh: result.status == .succeeded ? result.completedAt : nil,
-                                 lastAttemptedRefresh: result.completedAt, sourceIdentity: result.sourceIdentity,
-                                 errorDescription: result.errorDescription)
-            }
-            apply(CachedStoreSnapshot(snapshot: newSnapshot, sourceStatuses: statuses))
         }
     }
 
-    private static func collectSourceResults(from parsers: [TokenUsageParser]) async -> [SourceImportResult] {
-        await withTaskGroup(of: SourceImportResult.self) { group in
-            for parser in parsers { group.addTask { await parser.parseSource() } }
-            var result: [SourceImportResult] = []
-            for await sourceResult in group { result.append(sourceResult) }
-            return result.sorted { $0.source.rawValue < $1.source.rawValue }
+    private func importAndApply(_ result: SourceImportResult) async {
+        if let repository {
+            do {
+                try await repository.importSource(result)
+            } catch {
+                let failed = SourceImportResult.failed(source: result.source, error: error)
+                try? await repository.importSource(failed)
+            }
+            if let cached = try? await repository.load() { apply(cached) }
+            return
         }
+
+        apply(result, to: snapshot)
+    }
+
+    /// Replaces only the completed source, preserving the last known data for
+    /// sources that are still parsing or could not be read this time.
+    private func apply(_ result: SourceImportResult, to current: UsageSnapshot) {
+        var records = current.records
+        var titles = current.titles
+        var statuses = sourceStatuses
+
+        if result.status == .succeeded {
+            records.removeAll { $0.source == result.source }
+            records.append(contentsOf: result.records)
+            titles = titles.filter { $0.key.source != result.source }
+            titles.merge(result.titles) { _, new in new }
+        }
+
+        let previousStatus = statuses.first { $0.source == result.source }
+        let status = SourceSyncStatus(
+            source: result.source,
+            status: result.status,
+            lastSuccessfulRefresh: result.status == .succeeded ? result.completedAt : previousStatus?.lastSuccessfulRefresh,
+            lastAttemptedRefresh: result.completedAt,
+            sourceIdentity: result.status == .succeeded ? result.sourceIdentity : previousStatus?.sourceIdentity,
+            errorDescription: result.errorDescription
+        )
+        statuses.removeAll { $0.source == result.source }
+        statuses.append(status)
+
+        apply(CachedStoreSnapshot(
+            snapshot: UsageSnapshot(records: records, titles: titles,
+                                    lastSuccessfulRefresh: statuses.compactMap(\.lastSuccessfulRefresh).max()),
+            sourceStatuses: statuses.sorted { $0.source.rawValue < $1.source.rawValue }
+        ))
     }
 
     private func apply(_ cached: CachedStoreSnapshot) {
