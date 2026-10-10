@@ -42,7 +42,10 @@ final class TokenService: ObservableObject {
             await refreshTask.value
             return
         }
-        let task = Task { @MainActor [weak self] in await self?.runRefreshLoop() }
+        let task: Task<Void, Never> = Task { @MainActor [weak self] in
+            guard let self else { return }
+            await self.runRefreshLoop()
+        }
         refreshTask = task
         await task.value
         refreshTask = nil

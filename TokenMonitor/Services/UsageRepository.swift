@@ -21,10 +21,11 @@ actor UsageRepository {
         let context = ModelContext(container)
         let records = try context.fetch(FetchDescriptor<CachedUsageRecord>()).compactMap(\.tokenUsage)
         let conversations = try context.fetch(FetchDescriptor<CachedConversation>())
-        let titles = Dictionary(uniqueKeysWithValues: conversations.compactMap { conversation in
+        let titlePairs: [(SessionKey, String)] = conversations.compactMap { conversation in
             guard let source = TokenSource(rawValue: conversation.sourceRawValue), let title = conversation.title, !title.isEmpty else { return nil }
             return (SessionKey(source: source, sessionId: conversation.sessionId), title)
-        })
+        }
+        let titles: [SessionKey: String] = Dictionary(uniqueKeysWithValues: titlePairs)
         let states = try context.fetch(FetchDescriptor<CachedSourceSyncState>()).compactMap(\.snapshot)
         let latestRefresh = states.compactMap(\.lastSuccessfulRefresh).max()
         return CachedStoreSnapshot(snapshot: UsageSnapshot(records: records, titles: titles, createdAt: latestRefresh ?? Date(), lastSuccessfulRefresh: latestRefresh),
