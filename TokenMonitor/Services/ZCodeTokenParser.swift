@@ -42,13 +42,13 @@ actor ZCodeTokenParser: TokenUsageParser {
         return usages
     }
     
-    func parseSessionTitles() async -> [String : String] {
+    func parseSessionTitles() async -> [SessionKey : String] {
         // Bail out silently when ZCode isn't installed / hasn't created a DB.
         guard FileManager.default.fileExists(atPath: dbPath) else {
             return [:]
         }
         
-        var titles: [String: String] = [:]
+        var titles: [SessionKey: String] = [:]
         
         guard let db = openReadOnly() else {
             return [:]
@@ -67,7 +67,7 @@ actor ZCodeTokenParser: TokenUsageParser {
             guard let idC = sqlite3_column_text(stmt, 0) else { continue }
             let id = String(cString: idC)
             let title = textColumn(stmt, 1) ?? ""
-            titles[id] = title
+            titles[SessionKey(source: .zcode, sessionId: id)] = title
         }
         return titles
     }

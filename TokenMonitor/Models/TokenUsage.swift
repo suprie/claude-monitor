@@ -2,7 +2,7 @@ import Foundation
 
 /// Where a token-usage record originated: Claude (JSONL), ZCode (SQLite),
 /// Hermes (SQLite), or Codex (JSONL).
-enum TokenSource: String, Codable {
+enum TokenSource: String, Codable, CaseIterable, Sendable {
     case claude
     case zcode
     case hermes
@@ -29,8 +29,15 @@ enum TokenSource: String, Codable {
     }
 }
 
-struct TokenUsage: Codable, Identifiable {
-    let id = UUID()
+struct SessionKey: Hashable, Codable, Identifiable, Sendable, CustomStringConvertible {
+    let source: TokenSource
+    let sessionId: String
+
+    var id: String { description }
+    var description: String { "\(source.rawValue):\(sessionId)" }
+}
+
+struct TokenUsage: Codable, Identifiable, Sendable {
     let timestamp: Date
     let model: String
     let inputTokens: Int
@@ -40,6 +47,15 @@ struct TokenUsage: Codable, Identifiable {
     let sessionId: String
     let projectPath: String
     let source: TokenSource
+
+    /// Stable identity for a source event. UUIDs would change on every refresh.
+    var id: String {
+        "\(source.rawValue):\(sessionId):\(timestamp.timeIntervalSince1970):\(model)"
+    }
+
+    var sessionKey: SessionKey {
+        SessionKey(source: source, sessionId: sessionId)
+    }
 
     var totalTokens: Int {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
@@ -63,7 +79,6 @@ struct TokenUsage: Codable, Identifiable {
 }
 
 struct ModelTokenUsage: Identifiable {
-    let id = UUID()
     let model: String
     let source: TokenSource
     let inputTokens: Int
@@ -83,10 +98,11 @@ struct ModelTokenUsage: Identifiable {
     var chartID: String {
         "\(source.rawValue):\(model)"
     }
+
+    var id: String { chartID }
 }
 
 struct SessionTokenUsage: Identifiable {
-    let id = UUID()
     let sessionId: String
     let title: String?
     let projectPath: String
@@ -98,6 +114,13 @@ struct SessionTokenUsage: Identifiable {
     let outputTokens: Int
     let cacheCreationTokens: Int
     let cacheReadTokens: Int
+    let models: [ModelTokenUsage]
+
+    var id: String { sessionKey.id }
+
+    var sessionKey: SessionKey {
+        SessionKey(source: source, sessionId: sessionId)
+    }
 
     var totalTokens: Int {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens
@@ -192,12 +215,13 @@ struct ModelInfo {
 }
 
 struct DailyTokenUsage: Identifiable {
-    let id = UUID()
     let date: Date
     let inputTokens: Int
     let outputTokens: Int
     let cacheCreationTokens: Int
     let cacheReadTokens: Int
+
+    var id: Date { date }
 
     var totalTokens: Int {
         inputTokens + outputTokens + cacheCreationTokens + cacheReadTokens

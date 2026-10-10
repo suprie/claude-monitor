@@ -32,8 +32,8 @@ actor TokenParser: TokenUsageParser {
     /// fallback, when no explicit title is found we derive one from the
     /// first useful human prompt in the session. The explicit title always
     /// wins when present.
-    func parseSessionTitles() async -> [String: String] {
-        var titles: [String: String] = [:]
+    func parseSessionTitles() async -> [SessionKey: String] {
+        var titles: [SessionKey: String] = [:]
 
         guard let jsonlFiles = findJSONLFiles() else {
             return titles
@@ -41,7 +41,7 @@ actor TokenParser: TokenUsageParser {
 
         for file in jsonlFiles {
             for (sessionId, title) in await parseTitles(at: file) {
-                titles[sessionId] = title
+                titles[SessionKey(source: .claude, sessionId: sessionId)] = title
             }
         }
         return titles
