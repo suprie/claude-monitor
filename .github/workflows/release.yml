@@ -11,6 +11,7 @@ permissions:
 jobs:
   release:
     runs-on: macos-15
+    environment: RELEASE
     env:
       APP_NAME: TakarPakai
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
