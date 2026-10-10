@@ -1,0 +1,9 @@
+{
+  "id" : "72450f73-7d4a-4bb1-ae58-5bd6c526f4d7",
+  "targets" : [
+    {
+      "id" : "6516f85f-0c48-4cc1-a7d0-25aa347a7d73",
+      "name" : "TokenMonitor"
+    }
+  ]
+}
