@@ -38,6 +38,8 @@ targets:
           - "@executable_path/../Frameworks"
       configs:
         Release:
+          CODE_SIGN_STYLE: Manual
+          DEVELOPMENT_TEAM: SBTY5UG75A
           CODE_SIGN_IDENTITY: "Developer ID Application"
 
   TakarPakaiTests:

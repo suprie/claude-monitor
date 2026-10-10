@@ -213,7 +213,6 @@
 				TargetAttributes = {
 					B9273DE2197E7CDA88150F49 = {
 						DevelopmentTeam = SBTY5UG75A;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -343,7 +342,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TakarPakai/TakarPakai.entitlements;
 				CODE_SIGN_IDENTITY = "Developer ID Application";
-				CODE_SIGN_STYLE = Automatic;
+				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = SBTY5UG75A;
 				ENABLE_HARDENED_RUNTIME = YES;
