@@ -14,6 +14,7 @@ jobs:
     environment: RELEASE
     env:
       APP_NAME: TakarPakai
+      APP_BUNDLE_NAME: "Takar Pakai"
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
     steps:
@@ -66,8 +67,14 @@ jobs:
         run: |
           set -euo pipefail
 
-          APP_PATH="$PWD/build/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app"
+          APP_PATH="$PWD/build/$APP_NAME.xcarchive/Products/Applications/$APP_BUNDLE_NAME.app"
           NOTARY_ZIP="$RUNNER_TEMP/$APP_NAME-notary.zip"
+
+          test -d "$APP_PATH" || {
+            echo "Archived app not found at: $APP_PATH"
+            find "$PWD/build/$APP_NAME.xcarchive/Products/Applications" -maxdepth 1 -print
+            exit 1
+          }
 
           ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$NOTARY_ZIP"
           xcrun notarytool submit "$NOTARY_ZIP" \
@@ -82,7 +89,7 @@ jobs:
       - name: Package notarized app
         run: |
           set -euo pipefail
-          APP_PATH="$PWD/build/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app"
+          APP_PATH="$PWD/build/$APP_NAME.xcarchive/Products/Applications/$APP_BUNDLE_NAME.app"
           ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" \
             "$APP_NAME-${GITHUB_REF_NAME}.zip"
 
