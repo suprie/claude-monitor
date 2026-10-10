@@ -54,10 +54,10 @@
 		56BD4D96D7A79F73CCAAFF7E /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
 		56F875F19A40A12CA1D6A3B7 /* TakarPakai.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TakarPakai.entitlements; sourceTree = "<group>"; };
 		818D1725DFBCBD88B87FF834 /* PersistenceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceModels.swift; sourceTree = "<group>"; };
-		8B39F83F9673E1E894FB2F02 /* codex-rollout-fixture.jsonl */ = {isa = PBXFileReference; path = "codex-rollout-fixture.jsonl"; sourceTree = "<group>"; };
+		8B39F83F9673E1E894FB2F02 /* codex-rollout-fixture.jsonl */ = {isa = PBXFileReference; lastKnownFileType = text; path = "codex-rollout-fixture.jsonl"; sourceTree = "<group>"; };
 		90BFE88522DCEB509CD64CA3 /* CodexTokenParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexTokenParserTests.swift; sourceTree = "<group>"; };
 		92B9B82C31C511E91EF84659 /* TokenUsageParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUsageParser.swift; sourceTree = "<group>"; };
-		9F93D24CC866BC1389704D2D /* TakarPakai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TakarPakai.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9F93D24CC866BC1389704D2D /* Takar Pakai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Takar Pakai.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ADC006CF30F57628EDA4EC5F /* UsageQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageQuery.swift; sourceTree = "<group>"; };
 		AFA08DB53DCEE2A5B3CACFD5 /* UsageRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageRepositoryTests.swift; sourceTree = "<group>"; };
 		B7CC18B79D2AA89F508B58EE /* DeepSeekHarnessTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSeekHarnessTokenParser.swift; sourceTree = "<group>"; };
@@ -76,7 +76,7 @@
 		10B048A211B0DF82BA754705 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				9F93D24CC866BC1389704D2D /* TakarPakai.app */,
+				9F93D24CC866BC1389704D2D /* Takar Pakai.app */,
 				FABB2F8815F405512E9F314D /* TakarPakaiTests.xctest */,
 			);
 			name = Products;
@@ -199,7 +199,7 @@
 			packageProductDependencies = (
 			);
 			productName = TakarPakai;
-			productReference = 9F93D24CC866BC1389704D2D /* TakarPakai.app */;
+			productReference = 9F93D24CC866BC1389704D2D /* Takar Pakai.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -212,7 +212,6 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					B9273DE2197E7CDA88150F49 = {
-						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -342,14 +341,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TakarPakai/TakarPakai.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = SBTY5UG75A;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = TakarPakai/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path/../Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.suprie.takar-pakai";
 				PRODUCT_NAME = "Takar Pakai";
 				SDKROOT = macosx;
@@ -361,14 +359,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = TakarPakai/TakarPakai.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = SBTY5UG75A;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = TakarPakai/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"@executable_path/../Frameworks",
-				);
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.suprie.takar-pakai";
 				PRODUCT_NAME = "Takar Pakai";
 				SDKROOT = macosx;
