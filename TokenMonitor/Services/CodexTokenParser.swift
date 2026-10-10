@@ -65,6 +65,7 @@ actor CodexTokenParser: TokenUsageParser {
         var sessionId = url.deletingPathExtension().lastPathComponent
         var projectPath = ""
         var currentModel = "unknown"
+        var currentProviderRawValue: String?
         var usages: [TokenUsage] = []
 
         let decoder = JSONDecoder()
@@ -79,9 +80,11 @@ actor CodexTokenParser: TokenUsageParser {
             case "session_meta":
                 if let id = entry.payload?.id { sessionId = id }
                 if let cwd = entry.payload?.cwd { projectPath = cwd }
+                if let provider = entry.payload?.providerRawValue { currentProviderRawValue = provider }
 
             case "turn_context":
                 if let model = entry.payload?.model { currentModel = model }
+                if let provider = entry.payload?.providerRawValue { currentProviderRawValue = provider }
 
             case "event_msg":
                 guard entry.payload?.type == "token_count",
@@ -98,7 +101,10 @@ actor CodexTokenParser: TokenUsageParser {
                     cacheReadTokens: usage.cached_input_tokens ?? 0,
                     sessionId: sessionId,
                     projectPath: projectPath,
-                    source: .codex
+                    source: .codex,
+                    provider: BillingProvider(rawValue: currentProviderRawValue),
+                    providerRawValue: currentProviderRawValue,
+                    providerProvenance: currentProviderRawValue == nil ? .unavailable : .sourceMetadata
                 ))
 
             default:
@@ -132,9 +138,16 @@ private struct CodexRolloutLine: Codable {
         let cwd: String?
         // turn_context
         let model: String?
+        let model_provider: String?
+        let provider: String?
+        let provider_id: String?
         // event_msg
         let type: String?
         let info: Info?
+
+        var providerRawValue: String? {
+            model_provider ?? provider ?? provider_id
+        }
     }
 
     struct Info: Codable {
