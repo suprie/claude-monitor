@@ -1,5 +1,5 @@
 import XCTest
-@testable import Claude_Monitor
+@testable import Token_Monitor
 
 final class CodexTokenParserTests: XCTestCase {
     private var tempDir: URL!

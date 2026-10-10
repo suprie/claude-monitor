@@ -78,6 +78,11 @@ struct ModelTokenUsage: Identifiable {
     var displayName: String {
         ModelInfo.displayName(for: model)
     }
+
+    /// Stable identity for charts and model-based navigation.
+    var chartID: String {
+        "\(source.rawValue):\(model)"
+    }
 }
 
 struct SessionTokenUsage: Identifiable {

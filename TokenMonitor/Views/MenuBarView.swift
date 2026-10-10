@@ -3,7 +3,8 @@ import Charts
 
 struct MenuBarView: View {
     @EnvironmentObject var tokenService: TokenService
-    @StateObject private var launchAtLogin = LaunchAtLoginManager()
+    @EnvironmentObject var launchAtLogin: LaunchAtLoginManager
+    @Environment(\.openWindow) private var openWindow
     @State private var selectedPeriod: TimePeriod = .daily
     @State private var sessionSortOption: SessionSortOption = .recent
 
@@ -35,7 +36,7 @@ struct MenuBarView: View {
                 Image(systemName: "brain.head.profile")
                     .font(.title2)
                     .foregroundColor(.accentColor)
-                Text("Claude Token Monitor")
+                Text("Token Monitor")
                     .font(.headline)
                 Spacer()
                 if tokenService.isLoading {
@@ -131,6 +132,12 @@ struct MenuBarView: View {
             Divider()
 
             HStack {
+                Button("Open Token Monitor") {
+                    openWindow(id: "main")
+                    NSApp.activate(ignoringOtherApps: true)
+                }
+                .buttonStyle(.borderless)
+                Spacer()
                 SettingsLink {
                     Text("Settings...")
                 }
@@ -494,4 +501,5 @@ struct WeeklyChart: View {
 #Preview {
     MenuBarView()
         .environmentObject(TokenService())
+        .environmentObject(LaunchAtLoginManager())
 }

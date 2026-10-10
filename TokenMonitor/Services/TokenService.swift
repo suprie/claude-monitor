@@ -290,7 +290,7 @@ class TokenService: ObservableObject {
         }
     }
 
-    deinit {
+    isolated deinit {
         refreshTimer?.invalidate()
     }
 }
