@@ -9,27 +9,90 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  release:
     runs-on: macos-15
+    env:
+      APP_NAME: TakarPakai
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Select XCode
-        run: "sudo xcode-select -s /Applications/Xcode_26.3.app"
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.3.app
 
-      - name: Build App
-        run: "make release"
-
-      - name: Package App
+      - name: Import Developer ID certificate
+        env:
+          APPLE_CERTIFICATE_P12_BASE64: ${{ secrets.APPLE_CERTIFICATE_P12_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
         run: |
-          APP_PATH=$(find build -name "*.app" -type d | head -n 1)
-          echo "Found app: $APP_PATH"
-          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "TakarPakai-${GITHUB_REF_NAME}.zip"
+          set -euo pipefail
 
-      - name: Create Github Release
+          CERTIFICATE_PATH="$RUNNER_TEMP/developer-id.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/build.keychain-db"
+
+          printf '%s' "$APPLE_CERTIFICATE_P12_BASE64" | base64 -D > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: \
+            -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security find-identity -v -p codesigning "$KEYCHAIN_PATH"
+
+      - name: Archive signed app
+        run: |
+          set -euo pipefail
+          rm -rf build
+          xcodebuild archive \
+            -scheme "$APP_NAME" \
+            -configuration Release \
+            -archivePath "$PWD/build/$APP_NAME.xcarchive" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            CODE_SIGNING_REQUIRED=YES \
+            CODE_SIGNING_ALLOWED=YES
+
+      - name: Notarize and staple app
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+        run: |
+          set -euo pipefail
+
+          APP_PATH="$PWD/build/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app"
+          NOTARY_ZIP="$RUNNER_TEMP/$APP_NAME-notary.zip"
+
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "$NOTARY_ZIP"
+          xcrun notarytool submit "$NOTARY_ZIP" \
+            --apple-id "$APPLE_ID" \
+            --team-id "$APPLE_TEAM_ID" \
+            --password "$APPLE_APP_SPECIFIC_PASSWORD" \
+            --wait
+          xcrun stapler staple "$APP_PATH"
+          xcrun stapler validate "$APP_PATH"
+          spctl --assess --type execute --verbose "$APP_PATH"
+
+      - name: Package notarized app
+        run: |
+          set -euo pipefail
+          APP_PATH="$PWD/build/$APP_NAME.xcarchive/Products/Applications/$APP_NAME.app"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" \
+            "$APP_NAME-${GITHUB_REF_NAME}.zip"
+
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: TakarPakai-${{ github.ref_name }}.zip
+          files: ${{ env.APP_NAME }}-${{ github.ref_name }}.zip
           generate_release_notes: true
+
+      - name: Remove temporary signing keychain
+        if: ${{ always() }}
+        run: |
+          security delete-keychain "$RUNNER_TEMP/build.keychain-db" || true
+          rm -f "$RUNNER_TEMP/developer-id.p12"

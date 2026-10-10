@@ -44,6 +44,25 @@ make install
 make xcode
 ```
 
+## Release notarization
+
+Pushing a tag such as `v1.0.0` runs the GitHub Actions release workflow. The
+workflow signs the app with a Developer ID certificate, submits it to Apple for
+notarization, staples the ticket, validates the result, and publishes the
+notarized ZIP to the GitHub release.
+
+Configure these repository or environment secrets before creating a release:
+
+- `APPLE_CERTIFICATE_P12_BASE64`: base64-encoded Developer ID Application certificate export
+- `APPLE_CERTIFICATE_PASSWORD`: password used for the `.p12` export
+- `APPLE_APP_SPECIFIC_PASSWORD`: Apple ID app-specific password for `notarytool`
+- `APPLE_ID`: Apple Developer account email
+- `APPLE_TEAM_ID`: Apple Developer Team ID
+- `KEYCHAIN_PASSWORD`: one-time password for the CI keychain
+
+The signing certificate and all passwords remain in GitHub Actions secrets and
+are never committed to the repository.
+
 ## Data Source
 
 The app reads token usage data from `~/.claude/projects/` directory, parsing all `.jsonl` files recursively. It looks for messages with `type: "assistant"` and extracts token counts from the `usage` field.
