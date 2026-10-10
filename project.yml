@@ -28,6 +28,7 @@ targets:
         CODE_SIGN_ENTITLEMENTS: TakarPakai/TakarPakai.entitlements
         PRODUCT_NAME: "Takar Pakai"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        CODE_SIGN_IDENTITY: Apple Development
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: "SBTY5UG75A"
         ENABLE_HARDENED_RUNTIME: YES
@@ -35,6 +36,9 @@ targets:
         INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.utilities"
         LD_RUNPATH_SEARCH_PATHS:
           - "@executable_path/../Frameworks"
+      configs:
+        Release:
+          CODE_SIGN_IDENTITY: "Developer ID Application"
 
   TakarPakaiTests:
     type: bundle.unit-test
