@@ -1,5 +1,5 @@
 import XCTest
-@testable import Token_Monitor
+@testable import Takar_Pakai
 
 final class UsageRepositoryTests: XCTestCase {
     func testRepeatedImportIsIdempotentAndChangedAggregateReplacesExistingRow() async throws {

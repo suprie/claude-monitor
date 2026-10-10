@@ -12,7 +12,7 @@ struct MainWindowView: View {
                     Label(item.title, systemImage: item.systemImage)
                 }
             }
-            .navigationTitle("Token Monitor")
+            .navigationTitle("Takar Pakai")
             .listStyle(.sidebar)
         } detail: {
             switch selection ?? .home {

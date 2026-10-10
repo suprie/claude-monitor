@@ -1,0 +1,536 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		017AEB9B38E8193CC12B68A2 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10FC6B7D79ECCBB1A6609E4 /* SettingsView.swift */; };
+		072A7E589BF26C05148FD0C3 /* UsageQueryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F78A618553B15125B78F18 /* UsageQueryTests.swift */; };
+		0F0AB45314D559D6EA67FD8D /* PersistenceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 818D1725DFBCBD88B87FF834 /* PersistenceModels.swift */; };
+		4B23A96FFC326EE51A57B9AA /* MainWindowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 30649F0A0C2607185F8D16D3 /* MainWindowView.swift */; };
+		54776DD399E519B7A52F4416 /* codex-rollout-fixture.jsonl in Resources */ = {isa = PBXBuildFile; fileRef = 8B39F83F9673E1E894FB2F02 /* codex-rollout-fixture.jsonl */; };
+		5B6ED788C803973D461144D9 /* ZCodeTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2D06E68028CACDBB71641D8 /* ZCodeTokenParser.swift */; };
+		645F2537088AD6CDA15C135C /* TokenUsageParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B9B82C31C511E91EF84659 /* TokenUsageParser.swift */; };
+		68638A770F4012099297499B /* CodexTokenParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90BFE88522DCEB509CD64CA3 /* CodexTokenParserTests.swift */; };
+		6BBC4CA1800B0A01031BB4CA /* LaunchAtLoginManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = FEB7152F50068BD096022885 /* LaunchAtLoginManager.swift */; };
+		9B685ED379B81AEDDB7799BD /* DeepSeekHarnessTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7CC18B79D2AA89F508B58EE /* DeepSeekHarnessTokenParser.swift */; };
+		9BD0A17A1D452E534A6BC1AC /* TakarPakaiApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1267025FCD1F2F4F61E3DA66 /* TakarPakaiApp.swift */; };
+		9EDFCEE32839BC390306929C /* UsageRepositoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFA08DB53DCEE2A5B3CACFD5 /* UsageRepositoryTests.swift */; };
+		ABA051EB9BA4D5C02521AC51 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16CF45DAC8C96417D8A85844 /* HomeView.swift */; };
+		B6B816BA63CB3448C914BC48 /* HermesTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51436B7D9B097DF5DD0EABCA /* HermesTokenParser.swift */; };
+		B6CF6F0531B4061B158AB3E5 /* CodexTokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8B87FE479EE139A8C2ACFC9 /* CodexTokenParser.swift */; };
+		BBECB2934811EE8137080E7B /* TokenUsage.swift in Sources */ = {isa = PBXBuildFile; fileRef = F941A68BE54DFD40E748A025 /* TokenUsage.swift */; };
+		BCDC7846828B63EB0424A92F /* ProviderParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CF9AE6B4D9C1AB23287008F /* ProviderParserTests.swift */; };
+		C69C32909C714A28336213A0 /* MenuBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06C9ABADE1C2402FFAA8AFAF /* MenuBarView.swift */; };
+		CCA9B68654C0114C98E7AC8E /* UsageRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 377D092E09DF6DA595FEDAC3 /* UsageRepository.swift */; };
+		D4398E3ACE7D125B3B9333E5 /* TokenParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE1C81F88CFDC7AC74A5DA4B /* TokenParser.swift */; };
+		E61FFF89480E39552BE894B6 /* UsageQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADC006CF30F57628EDA4EC5F /* UsageQuery.swift */; };
+		F5994B01668C122EB6648FAA /* TokenService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BD4D96D7A79F73CCAAFF7E /* TokenService.swift */; };
+		FCDB7DB85D63B3461E33DE17 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 227E2354D3D3FCAB00FB72DF /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FD4FF45FD9B90C1CBF9F0B2A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7BAE2FDA0A2EED1512BED0ED /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = B9273DE2197E7CDA88150F49;
+			remoteInfo = TakarPakai;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		06C9ABADE1C2402FFAA8AFAF /* MenuBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarView.swift; sourceTree = "<group>"; };
+		1267025FCD1F2F4F61E3DA66 /* TakarPakaiApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TakarPakaiApp.swift; sourceTree = "<group>"; };
+		16CF45DAC8C96417D8A85844 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		227E2354D3D3FCAB00FB72DF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		30649F0A0C2607185F8D16D3 /* MainWindowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainWindowView.swift; sourceTree = "<group>"; };
+		377D092E09DF6DA595FEDAC3 /* UsageRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageRepository.swift; sourceTree = "<group>"; };
+		4CF9AE6B4D9C1AB23287008F /* ProviderParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProviderParserTests.swift; sourceTree = "<group>"; };
+		51436B7D9B097DF5DD0EABCA /* HermesTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HermesTokenParser.swift; sourceTree = "<group>"; };
+		56BD4D96D7A79F73CCAAFF7E /* TokenService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenService.swift; sourceTree = "<group>"; };
+		56F875F19A40A12CA1D6A3B7 /* TakarPakai.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = TakarPakai.entitlements; sourceTree = "<group>"; };
+		818D1725DFBCBD88B87FF834 /* PersistenceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceModels.swift; sourceTree = "<group>"; };
+		8B39F83F9673E1E894FB2F02 /* codex-rollout-fixture.jsonl */ = {isa = PBXFileReference; path = "codex-rollout-fixture.jsonl"; sourceTree = "<group>"; };
+		90BFE88522DCEB509CD64CA3 /* CodexTokenParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexTokenParserTests.swift; sourceTree = "<group>"; };
+		92B9B82C31C511E91EF84659 /* TokenUsageParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUsageParser.swift; sourceTree = "<group>"; };
+		9F93D24CC866BC1389704D2D /* TakarPakai.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TakarPakai.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		ADC006CF30F57628EDA4EC5F /* UsageQuery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageQuery.swift; sourceTree = "<group>"; };
+		AFA08DB53DCEE2A5B3CACFD5 /* UsageRepositoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageRepositoryTests.swift; sourceTree = "<group>"; };
+		B7CC18B79D2AA89F508B58EE /* DeepSeekHarnessTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeepSeekHarnessTokenParser.swift; sourceTree = "<group>"; };
+		B8B87FE479EE139A8C2ACFC9 /* CodexTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodexTokenParser.swift; sourceTree = "<group>"; };
+		C1D21F92B8B8D4742AAA1FCF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E2D06E68028CACDBB71641D8 /* ZCodeTokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ZCodeTokenParser.swift; sourceTree = "<group>"; };
+		E3F78A618553B15125B78F18 /* UsageQueryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsageQueryTests.swift; sourceTree = "<group>"; };
+		F10FC6B7D79ECCBB1A6609E4 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		F941A68BE54DFD40E748A025 /* TokenUsage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenUsage.swift; sourceTree = "<group>"; };
+		FABB2F8815F405512E9F314D /* TakarPakaiTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TakarPakaiTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE1C81F88CFDC7AC74A5DA4B /* TokenParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TokenParser.swift; sourceTree = "<group>"; };
+		FEB7152F50068BD096022885 /* LaunchAtLoginManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginManager.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		10B048A211B0DF82BA754705 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9F93D24CC866BC1389704D2D /* TakarPakai.app */,
+				FABB2F8815F405512E9F314D /* TakarPakaiTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		63E04D5B7315468625CA2286 /* TakarPakaiTests */ = {
+			isa = PBXGroup;
+			children = (
+				90BFE88522DCEB509CD64CA3 /* CodexTokenParserTests.swift */,
+				4CF9AE6B4D9C1AB23287008F /* ProviderParserTests.swift */,
+				E3F78A618553B15125B78F18 /* UsageQueryTests.swift */,
+				AFA08DB53DCEE2A5B3CACFD5 /* UsageRepositoryTests.swift */,
+				CB587E062EEED39E0943565A /* Fixtures */,
+			);
+			path = TakarPakaiTests;
+			sourceTree = "<group>";
+		};
+		89C9D7B441DB2E34E509AED7 = {
+			isa = PBXGroup;
+			children = (
+				EBAE790B3FAA956AD02BECC0 /* TakarPakai */,
+				63E04D5B7315468625CA2286 /* TakarPakaiTests */,
+				10B048A211B0DF82BA754705 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A3F8ABEE50674FEF0C2F9086 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				B8B87FE479EE139A8C2ACFC9 /* CodexTokenParser.swift */,
+				B7CC18B79D2AA89F508B58EE /* DeepSeekHarnessTokenParser.swift */,
+				51436B7D9B097DF5DD0EABCA /* HermesTokenParser.swift */,
+				FEB7152F50068BD096022885 /* LaunchAtLoginManager.swift */,
+				FE1C81F88CFDC7AC74A5DA4B /* TokenParser.swift */,
+				56BD4D96D7A79F73CCAAFF7E /* TokenService.swift */,
+				92B9B82C31C511E91EF84659 /* TokenUsageParser.swift */,
+				ADC006CF30F57628EDA4EC5F /* UsageQuery.swift */,
+				377D092E09DF6DA595FEDAC3 /* UsageRepository.swift */,
+				E2D06E68028CACDBB71641D8 /* ZCodeTokenParser.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		BDF2E0BBA31EBDDB97E9C9D6 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				16CF45DAC8C96417D8A85844 /* HomeView.swift */,
+				30649F0A0C2607185F8D16D3 /* MainWindowView.swift */,
+				06C9ABADE1C2402FFAA8AFAF /* MenuBarView.swift */,
+				F10FC6B7D79ECCBB1A6609E4 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		CB587E062EEED39E0943565A /* Fixtures */ = {
+			isa = PBXGroup;
+			children = (
+				8B39F83F9673E1E894FB2F02 /* codex-rollout-fixture.jsonl */,
+			);
+			path = Fixtures;
+			sourceTree = "<group>";
+		};
+		DE1C06228C02E839F3E05A90 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				818D1725DFBCBD88B87FF834 /* PersistenceModels.swift */,
+				F941A68BE54DFD40E748A025 /* TokenUsage.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		EBAE790B3FAA956AD02BECC0 /* TakarPakai */ = {
+			isa = PBXGroup;
+			children = (
+				227E2354D3D3FCAB00FB72DF /* Assets.xcassets */,
+				C1D21F92B8B8D4742AAA1FCF /* Info.plist */,
+				56F875F19A40A12CA1D6A3B7 /* TakarPakai.entitlements */,
+				1267025FCD1F2F4F61E3DA66 /* TakarPakaiApp.swift */,
+				DE1C06228C02E839F3E05A90 /* Models */,
+				A3F8ABEE50674FEF0C2F9086 /* Services */,
+				BDF2E0BBA31EBDDB97E9C9D6 /* Views */,
+			);
+			path = TakarPakai;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8368189608B9786B00B03557 /* TakarPakaiTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 47A2C538B362AA7FAFE782A9 /* Build configuration list for PBXNativeTarget "TakarPakaiTests" */;
+			buildPhases = (
+				534A9FE7D5F6A387A6F4935C /* Sources */,
+				B47759F4702596933DCD0D2C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D2BE49E1B15FDBA9FD92E697 /* PBXTargetDependency */,
+			);
+			name = TakarPakaiTests;
+			packageProductDependencies = (
+			);
+			productName = TakarPakaiTests;
+			productReference = FABB2F8815F405512E9F314D /* TakarPakaiTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		B9273DE2197E7CDA88150F49 /* TakarPakai */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E75FF3FE80544016CD68EECC /* Build configuration list for PBXNativeTarget "TakarPakai" */;
+			buildPhases = (
+				5DE932CD3B38474B0AB38BBB /* Sources */,
+				E7C8576BA1D99887F07408E8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TakarPakai;
+			packageProductDependencies = (
+			);
+			productName = TakarPakai;
+			productReference = 9F93D24CC866BC1389704D2D /* TakarPakai.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7BAE2FDA0A2EED1512BED0ED /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					B9273DE2197E7CDA88150F49 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = CC28598307FE9099228FEEC3 /* Build configuration list for PBXProject "TakarPakai" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 89C9D7B441DB2E34E509AED7;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 10B048A211B0DF82BA754705 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				B9273DE2197E7CDA88150F49 /* TakarPakai */,
+				8368189608B9786B00B03557 /* TakarPakaiTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B47759F4702596933DCD0D2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				54776DD399E519B7A52F4416 /* codex-rollout-fixture.jsonl in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E7C8576BA1D99887F07408E8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FCDB7DB85D63B3461E33DE17 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		534A9FE7D5F6A387A6F4935C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				68638A770F4012099297499B /* CodexTokenParserTests.swift in Sources */,
+				BCDC7846828B63EB0424A92F /* ProviderParserTests.swift in Sources */,
+				072A7E589BF26C05148FD0C3 /* UsageQueryTests.swift in Sources */,
+				9EDFCEE32839BC390306929C /* UsageRepositoryTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5DE932CD3B38474B0AB38BBB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B6CF6F0531B4061B158AB3E5 /* CodexTokenParser.swift in Sources */,
+				9B685ED379B81AEDDB7799BD /* DeepSeekHarnessTokenParser.swift in Sources */,
+				B6B816BA63CB3448C914BC48 /* HermesTokenParser.swift in Sources */,
+				ABA051EB9BA4D5C02521AC51 /* HomeView.swift in Sources */,
+				6BBC4CA1800B0A01031BB4CA /* LaunchAtLoginManager.swift in Sources */,
+				4B23A96FFC326EE51A57B9AA /* MainWindowView.swift in Sources */,
+				C69C32909C714A28336213A0 /* MenuBarView.swift in Sources */,
+				0F0AB45314D559D6EA67FD8D /* PersistenceModels.swift in Sources */,
+				017AEB9B38E8193CC12B68A2 /* SettingsView.swift in Sources */,
+				9BD0A17A1D452E534A6BC1AC /* TakarPakaiApp.swift in Sources */,
+				D4398E3ACE7D125B3B9333E5 /* TokenParser.swift in Sources */,
+				F5994B01668C122EB6648FAA /* TokenService.swift in Sources */,
+				BBECB2934811EE8137080E7B /* TokenUsage.swift in Sources */,
+				645F2537088AD6CDA15C135C /* TokenUsageParser.swift in Sources */,
+				E61FFF89480E39552BE894B6 /* UsageQuery.swift in Sources */,
+				CCA9B68654C0114C98E7AC8E /* UsageRepository.swift in Sources */,
+				5B6ED788C803973D461144D9 /* ZCodeTokenParser.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D2BE49E1B15FDBA9FD92E697 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = B9273DE2197E7CDA88150F49 /* TakarPakai */;
+			targetProxy = FD4FF45FD9B90C1CBF9F0B2A /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		611545635371238851817FC7 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.suprie.takar-pakai.tests";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TakarPakai.app/Contents/MacOS/TakarPakai";
+			};
+			name = Release;
+		};
+		764B633B1A59AF7CD9E37F6F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.suprie.takar-pakai.tests";
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TakarPakai.app/Contents/MacOS/TakarPakai";
+			};
+			name = Debug;
+		};
+		A33041AB475ACC66E4B65A7D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TakarPakai/TakarPakai.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = TakarPakai/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.suprie.takar-pakai";
+				PRODUCT_NAME = "Takar Pakai";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		AB766CE4AFADA71AB036A901 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = TakarPakai/TakarPakai.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				INFOPLIST_FILE = TakarPakai/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "com.suprie.takar-pakai";
+				PRODUCT_NAME = "Takar Pakai";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		D3F38C762D26B5DADE1AE9C9 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+		D4DEA956A1D716F866C3D4D5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		47A2C538B362AA7FAFE782A9 /* Build configuration list for PBXNativeTarget "TakarPakaiTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				764B633B1A59AF7CD9E37F6F /* Debug */,
+				611545635371238851817FC7 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		CC28598307FE9099228FEEC3 /* Build configuration list for PBXProject "TakarPakai" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D3F38C762D26B5DADE1AE9C9 /* Debug */,
+				D4DEA956A1D716F866C3D4D5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E75FF3FE80544016CD68EECC /* Build configuration list for PBXNativeTarget "TakarPakai" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AB766CE4AFADA71AB036A901 /* Debug */,
+				A33041AB475ACC66E4B65A7D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7BAE2FDA0A2EED1512BED0ED /* Project object */;
+}

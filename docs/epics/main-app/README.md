@@ -1,8 +1,8 @@
-# Token Monitor main app plan
+# Takar Pakai main app plan
 
 Status: proposed · Created: 2026-10-10
 
-Build a full macOS app where opening Token Monitor shows usage across providers, and selecting a conversation explains its token usage and estimated cost. Keep the menu bar as a quick summary and entry point. Each phase should be a separate, reviewable change that leaves the app usable.
+Build a full macOS app where opening Takar Pakai shows usage across providers, and selecting a conversation explains its token usage and estimated cost. Keep the menu bar as a quick summary and entry point. Each phase should be a separate, reviewable change that leaves the app usable.
 
 ## Product shape
 
@@ -10,7 +10,7 @@ Build a full macOS app where opening Token Monitor shows usage across providers,
 - **Conversations:** searchable history with source, provider, model(s), project, activity time, tokens, and eventually estimated cost.
 - **Conversation detail:** lifetime totals, selected-period totals, model/provider breakdown, token categories, and an explanation of estimated cost.
 - **Settings:** launch at login, source availability, and pricing configuration.
-- **Menu bar:** today's usage, refresh, and an Open Token Monitor action.
+- **Menu bar:** today's usage, refresh, and an Open Takar Pakai action.
 
 Start with Today, This Week, This Month, and All Time. “All Time” means all locally available records, not deleted history or usage on other devices. Add a custom date range only after these presets work consistently.
 
@@ -28,7 +28,7 @@ Start with the existing 60-second refresh and manual refresh. Incremental import
 
 ## What the code already provides
 
-`ClaudeMonitorApp.swift` creates a `MenuBarExtra` and Settings scene, but no main window. `Info.plist` sets `LSUIElement` to true. `TokenService` reads four parsers every 60 seconds and builds daily, weekly, monthly, model, and session totals. Swift Charts is already used in the menu bar.
+`TakarPakaiApp.swift` creates a `MenuBarExtra` and Settings scene, but no main window. `Info.plist` sets `LSUIElement` to true. `TokenService` reads four parsers every 60 seconds and builds daily, weekly, monthly, model, and session totals. Swift Charts is already used in the menu bar.
 
 The main gaps are a window, reusable historical queries, provider identity, and pricing. The current session accumulator groups only by session ID and retains one model; a conversation can actually contain multiple models. Records and aggregate rows currently use generated UUIDs, which are unsuitable for persistent selection across refreshes.
 
@@ -36,7 +36,7 @@ The main gaps are a window, reusable historical queries, provider identity, and 
 
 ## Before implementation
 
-The working tree contains an in-progress ClaudeMonitor → TokenMonitor rename and unresolved project-file changes. Establish a buildable baseline while preserving that work. Align the Xcode target, scheme, Makefile, and test module import with the final naming. This is an implementation prerequisite, not a reason to change those files during planning.
+The working tree contains an in-progress app rename and unresolved project-file changes. Establish a buildable baseline while preserving that work. Align the Xcode target, scheme, Makefile, and test module import with the final naming. This is an implementation prerequisite, not a reason to change those files during planning.
 
 ## Small delivery phases
 
@@ -45,12 +45,12 @@ The working tree contains an in-progress ClaudeMonitor → TokenMonitor rename a
 Scope:
 - Add a main window with Home and Conversations navigation; reuse the existing Settings scene.
 - Show the existing token summary on Home as the first useful screen.
-- Adopt normal Dock/app activation behavior and add Open Token Monitor to the menu bar.
+- Adopt normal Dock/app activation behavior and add Open Takar Pakai to the menu bar.
 - Explicit launch and Dock reopen show/focus the window. Launch at login starts quietly; closing the window keeps monitoring active.
 
 Done when: opening the app shows Home, repeated opens focus the existing window, and menu bar monitoring continues after closing it. Verify these lifecycle behaviors manually.
 
-Primary files: `ClaudeMonitorApp.swift`, `Info.plist`, `MenuBarView.swift`; new main-window and navigation views.
+Primary files: `TakarPakaiApp.swift`, `Info.plist`, `MenuBarView.swift`; new main-window and navigation views.
 
 ### Phase 2 — Make usage queries reliable
 
@@ -191,7 +191,7 @@ Done when: a large-history fixture remains responsive, refresh does not duplicat
 
 ## Delivery checkpoints
 
-1. **After phase 1:** Token Monitor behaves like a main app.
+1. **After phase 1:** Takar Pakai behaves like a main app.
 2. **After phase 3b:** Cached usage loads immediately and stays updated in the background.
 3. **After phase 4:** Home shows reliable provider token comparisons.
 4. **After phase 6:** Users can inspect all available conversations and their token breakdowns.

@@ -1,6 +1,6 @@
 import XCTest
 import SQLite3
-@testable import Token_Monitor
+@testable import Takar_Pakai
 
 final class ProviderParserTests: XCTestCase {
     private var temporaryURLs: [URL] = []

@@ -36,7 +36,7 @@ struct MenuBarView: View {
                 Image(systemName: "brain.head.profile")
                     .font(.title2)
                     .foregroundColor(.accentColor)
-                Text("Token Monitor")
+                Text("Takar Pakai")
                     .font(.headline)
                 Spacer()
                 if tokenService.isLoading {
@@ -132,7 +132,7 @@ struct MenuBarView: View {
             Divider()
 
             HStack {
-                Button("Open Token Monitor") {
+                Button("Open Takar Pakai") {
                     openWindow(id: "main")
                     NSApp.activate(ignoringOtherApps: true)
                 }

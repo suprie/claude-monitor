@@ -1,4 +1,4 @@
-# Claude Token Monitor
+# Takar Pakai
 
 A macOS menu bar app that displays your Claude Code token usage statistics.
 
@@ -28,7 +28,7 @@ The app displays:
 
 ```bash
 # Clone and build
-cd claude-monitor
+cd takar-pakai
 make build
 
 # Run
@@ -57,8 +57,8 @@ Token types tracked:
 ## Project Structure
 
 ```
-ClaudeMonitor/
-├── ClaudeMonitorApp.swift     # Main app entry point
+TakarPakai/
+├── TakarPakaiApp.swift        # Main app entry point
 ├── Models/
 │   └── TokenUsage.swift       # Data models
 ├── Services/
@@ -69,7 +69,7 @@ ClaudeMonitor/
 │   └── SettingsView.swift     # Settings window
 ├── Assets.xcassets/           # App icons
 ├── Info.plist                 # App configuration
-└── ClaudeMonitor.entitlements # App entitlements
+└── TakarPakai.entitlements    # App entitlements
 ```
 
 ## License

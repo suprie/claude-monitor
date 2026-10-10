@@ -1,6 +1,6 @@
-name: TokenMonitor
+name: TakarPakai
 options:
-  bundleIdPrefix: com.suprie.token-monitor
+  bundleIdPrefix: com.suprie.takar-pakai
   deploymentTarget:
     macOS: "14.0"
   xcodeVersion: "15.0"
@@ -15,17 +15,17 @@ settings:
     GENERATE_INFOPLIST_FILE: NO
 
 targets:
-  TokenMonitor:
+  TakarPakai:
     type: application
     platform: macOS
     sources:
-      - TokenMonitor
+      - TakarPakai
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.suprie.token-monitor
-        INFOPLIST_FILE: TokenMonitor/Info.plist
-        CODE_SIGN_ENTITLEMENTS: TokenMonitor/TokenMonitor.entitlements
-        PRODUCT_NAME: "Token Monitor"
+        PRODUCT_BUNDLE_IDENTIFIER: com.suprie.takar-pakai
+        INFOPLIST_FILE: TakarPakai/Info.plist
+        CODE_SIGN_ENTITLEMENTS: TakarPakai/TakarPakai.entitlements
+        PRODUCT_NAME: "Takar Pakai"
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: ""
@@ -34,26 +34,26 @@ targets:
         LD_RUNPATH_SEARCH_PATHS:
           - "@executable_path/../Frameworks"
 
-  TokenMonitorTests:
+  TakarPakaiTests:
     type: bundle.unit-test
     platform: macOS
     sources:
-      - ClaudeMonitorTests
+      - TakarPakaiTests
     resources:
-      - ClaudeMonitorTests/Fixtures
+      - TakarPakaiTests/Fixtures
     dependencies:
-      - target: TokenMonitor
+      - target: TakarPakai
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.suprie.token-monitor.tests
+        PRODUCT_BUNDLE_IDENTIFIER: com.suprie.takar-pakai.tests
         GENERATE_INFOPLIST_FILE: YES
 
 schemes:
-  TokenMonitor:
+  TakarPakai:
     build:
       targets:
-        TokenMonitor: all
-        TokenMonitorTests: [test]
+        TakarPakai: all
+        TakarPakaiTests: [test]
     test:
       targets:
-        - TokenMonitorTests
+        - TakarPakaiTests

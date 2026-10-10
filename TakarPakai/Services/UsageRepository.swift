@@ -12,9 +12,9 @@ actor UsageRepository {
     private let container: ModelContainer
 
     init(inMemory: Bool = false) throws {
-        let schema = Schema(versionedSchema: TokenMonitorSchemaV1.self)
-        let configuration = ModelConfiguration("TokenMonitorCache", schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
-        container = try ModelContainer(for: schema, migrationPlan: TokenMonitorMigrationPlan.self, configurations: configuration)
+        let schema = Schema(versionedSchema: TakarPakaiSchemaV1.self)
+        let configuration = ModelConfiguration("TakarPakaiCache", schema: schema, isStoredInMemoryOnly: inMemory, cloudKitDatabase: .none)
+        container = try ModelContainer(for: schema, migrationPlan: TakarPakaiMigrationPlan.self, configurations: configuration)
     }
 
     func load() throws -> CachedStoreSnapshot {
@@ -69,7 +69,7 @@ actor UsageRepository {
         try context.save()
     }
 
-    /// Clears only Token Monitor's derived cache. Source files, databases, and
+    /// Clears only Takar Pakai's derived cache. Source files, databases, and
     /// any future pricing overrides live outside this container and are never touched.
     func rebuildCache() throws {
         let context = ModelContext(container)

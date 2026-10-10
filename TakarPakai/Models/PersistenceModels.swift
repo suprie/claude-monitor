@@ -135,12 +135,12 @@ final class CachedSourceSyncState {
     }
 }
 
-enum TokenMonitorSchemaV1: VersionedSchema {
+enum TakarPakaiSchemaV1: VersionedSchema {
     static let versionIdentifier = Schema.Version(1, 0, 0)
     static var models: [any PersistentModel.Type] { [CachedUsageRecord.self, CachedConversation.self, CachedSourceSyncState.self] }
 }
 
-enum TokenMonitorMigrationPlan: SchemaMigrationPlan {
-    static var schemas: [any VersionedSchema.Type] { [TokenMonitorSchemaV1.self] }
+enum TakarPakaiMigrationPlan: SchemaMigrationPlan {
+    static var schemas: [any VersionedSchema.Type] { [TakarPakaiSchemaV1.self] }
     static var stages: [MigrationStage] { [] }
 }

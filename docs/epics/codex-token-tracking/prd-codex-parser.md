@@ -12,9 +12,9 @@ description: >
 ## Overview
 
 The app tracks token usage for Claude, ZCode, and Hermes through parsers that
-conform to `TokenUsageParser` (`ClaudeMonitor/Services/TokenUsageParser.swift`)
+conform to `TokenUsageParser` (`TakarPakai/Services/TokenUsageParser.swift`)
 and are fanned out concurrently by `TokenService`
-(`ClaudeMonitor/Services/TokenService.swift:19-24`). This PRD adds Codex CLI
+(`TakarPakai/Services/TokenService.swift:19-24`). This PRD adds Codex CLI
 as a fourth source using the same pattern.
 
 ## Problem Statement

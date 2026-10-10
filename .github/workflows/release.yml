@@ -26,10 +26,10 @@ jobs:
         run: |
           APP_PATH=$(find build -name "*.app" -type d | head -n 1)
           echo "Found app: $APP_PATH"
-          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "ClaudeMonitor-${GITHUB_REF_NAME}.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP_PATH" "TakarPakai-${GITHUB_REF_NAME}.zip"
 
       - name: Create Github Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ClaudeMonitor-${{ github.ref_name }}.zip
+          files: TakarPakai-${{ github.ref_name }}.zip
           generate_release_notes: true

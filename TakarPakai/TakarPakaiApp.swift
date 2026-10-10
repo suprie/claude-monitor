@@ -4,13 +4,13 @@ import ServiceManagement
 import AppKit
 
 @main
-struct TokenMonitorApp: App {
+struct TakarPakaiApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
     @StateObject private var tokenService = TokenService()
     @StateObject private var launchAtLogin = LaunchAtLoginManager()
 
     var body: some Scene {
-        WindowGroup("Token Monitor", id: "main") {
+        WindowGroup("Takar Pakai", id: "main") {
             MainWindowView()
                 .environmentObject(tokenService)
                 .environmentObject(launchAtLogin)
@@ -49,7 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.regular)
         NSApp.activate(ignoringOtherApps: true)
 
-        if let window = NSApp.windows.first(where: { $0.title == "Token Monitor" }) {
+        if let window = NSApp.windows.first(where: { $0.title == "Takar Pakai" }) {
             window.makeKeyAndOrderFront(nil)
         }
 
